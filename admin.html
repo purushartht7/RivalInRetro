@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rival in Retro — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Firebase SDK (compat v9) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   ROOT / TOKENS
+═══════════════════════════════════════════ */
+:root{
+  --bg:#080808;
+  --s0:#0f0f0f;
+  --s1:#141414;
+  --s2:#1a1a1a;
+  --s3:#222;
+  --border:#252525;
+  --border2:#2e2e2e;
+  --gold:#c8a84b;
+  --gold2:#e2c96a;
+  --gold-dim:rgba(200,168,75,.12);
+  --gold-dim2:rgba(200,168,75,.06);
+  --text:#f0ede6;
+  --muted:#888;
+  --dim:#444;
+  --danger:#e05252;
+  --danger-dim:rgba(224,82,82,.12);
+  --success:#4caf8a;
+  --success-dim:rgba(76,175,138,.12);
+  --wa:#25D366;
+  --sidebar:220px;
+  --topbar:58px;
+  --radius:2px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;line-height:1.5;
+}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--s0);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:var(--dim);}
+
+/* ═══════════════════════════════════════════
+   LAYOUT SHELL
+═══════════════════════════════════════════ */
+#shell{display:flex;height:100vh;}
+
+/* SIDEBAR */
+#sidebar{
+  width:var(--sidebar);flex-shrink:0;
+  background:var(--s0);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow:hidden;z-index:50;
+}
+.sb-logo{
+  padding:1.4rem 1.3rem 1rem;
+  border-bottom:1px solid var(--border);
+}
+.sb-logo-mark{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.25rem;letter-spacing:2.5px;
+  line-height:1;
+}
+.sb-logo-mark em{color:var(--gold);font-style:normal;}
+.sb-logo-sub{
+  font-size:.6rem;color:var(--muted);
+  letter-spacing:2px;text-transform:uppercase;
+  margin-top:.25rem;
+}
+.sb-nav{flex:1;overflow-y:auto;padding:.6rem 0;}
+.sb-group-label{
+  font-size:.58rem;color:var(--dim);
+  text-transform:uppercase;letter-spacing:2px;
+  padding:.8rem 1.2rem .3rem;
+}
+.sb-item{
+  display:flex;align-items:center;gap:.65rem;
+  padding:.65rem 1.2rem;
+  color:var(--muted);
+  font-size:.82rem;font-weight:500;
+  cursor:pointer;transition:all .15s;
+  border-left:2px solid transparent;
+  user-select:none;
+}
+.sb-item:hover{color:var(--text);background:var(--s1);}
+.sb-item.active{
+  color:var(--gold);border-left-color:var(--gold);
+  background:var(--gold-dim);
+}
+.sb-item svg{width:15px;height:15px;flex-shrink:0;}
+.sb-badge{
+  margin-left:auto;background:var(--gold);color:#000;
+  font-size:.58rem;font-weight:800;
+  padding:.1rem .4rem;letter-spacing:.5px;
+  min-width:18px;text-align:center;
+}
+.sb-footer{
+  border-top:1px solid var(--border);
+  padding:1rem 1.2rem;
+}
+.sb-footer-text{font-size:.68rem;color:var(--dim);}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* TOPBAR */
+#topbar{
+  height:var(--topbar);flex-shrink:0;
+  background:var(--s0);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.8rem;gap:1rem;
+}
+.topbar-left{display:flex;align-items:center;gap:.5rem;}
+.page-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.2rem;letter-spacing:1.5px;color:var(--text);
+}
+.page-sub{font-size:.72rem;color:var(--muted);margin-top:.05rem;}
+.topbar-right{display:flex;align-items:center;gap:.6rem;}
+
+/* CONTENT */
+#content{flex:1;overflow-y:auto;padding:1.8rem;}
+
+/* ═══════════════════════════════════════════
+   COMMON COMPONENTS
+═══════════════════════════════════════════ */
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.55rem 1.1rem;
+  font-family:'DM Sans',sans-serif;
+  font-size:.78rem;font-weight:600;
+  letter-spacing:.3px;text-transform:uppercase;
+  border:none;cursor:pointer;transition:all .18s;
+  white-space:nowrap;
+}
+.btn-primary{background:var(--gold);color:#000;}
+.btn-primary:hover{background:var(--gold2);transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text);}
+.btn-danger{background:var(--danger-dim);color:var(--danger);border:1px solid transparent;}
+.btn-danger:hover{background:var(--danger);color:#fff;}
+.btn-success{background:var(--success-dim);color:var(--success);border:1px solid transparent;}
+.btn-success:hover{background:var(--success);color:#fff;}
+.btn-sm{padding:.35rem .75rem;font-size:.7rem;}
+.btn-icon{padding:.5rem;aspect-ratio:1;}
+
+/* Cards */
+.card{
+  background:var(--s1);border:1px solid var(--border);
+  padding:1.4rem;
+}
+.card-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1rem;letter-spacing:1px;
+  margin-bottom:1rem;
+}
+
+/* Stat cards */
+.stat-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1rem;margin-bottom:1.6rem;
+}
+.stat-card{
+  background:var(--s1);border:1px solid var(--border);
+  padding:1.2rem 1.4rem;
+  display:flex;align-items:flex-start;justify-content:space-between;
+}
+.stat-card:hover{border-color:var(--border2);}
+.stat-n{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2rem;letter-spacing:1px;color:var(--gold);
+}
+.stat-l{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:.15rem;}
+.stat-icon{font-size:1.4rem;opacity:.4;}
+
+/* Tables */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{
+  font-size:.62rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1.5px;
+  padding:.65rem 1rem;
+  border-bottom:1px solid var(--border);
+  text-align:left;white-space:nowrap;
+  background:var(--s0);font-weight:600;
+}
+td{
+  padding:.7rem 1rem;
+  border-bottom:1px solid var(--border);
+  font-size:.83rem;vertical-align:middle;
+}
+tr:hover td{background:var(--s2);}
+tr:last-child td{border-bottom:none;}
+.td-actions{display:flex;gap:.4rem;align-items:center;}
+
+/* Badges */
+.badge{
+  display:inline-flex;align-items:center;
+  font-size:.6rem;font-weight:700;
+  letter-spacing:.8px;text-transform:uppercase;
+  padding:.18rem .55rem;
+}
+.badge-gold{background:var(--gold-dim);color:var(--gold);}
+.badge-success{background:var(--success-dim);color:var(--success);}
+.badge-danger{background:var(--danger-dim);color:var(--danger);}
+.badge-muted{background:var(--s3);color:var(--muted);}
+
+/* Forms */
+.form-grid{display:grid;gap:1rem;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.field{display:flex;flex-direction:column;gap:.4rem;}
+.field label{
+  font-size:.65rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1.5px;font-weight:600;
+}
+.field input,.field select,.field textarea{
+  background:var(--s0);border:1px solid var(--border);
+  color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:.85rem;padding:.7rem .9rem;
+  outline:none;transition:border-color .18s;width:100%;
+}
+.field input:focus,.field select,.field textarea:focus{
+  border-color:var(--gold);
+}
+.field select{cursor:pointer;}
+.field textarea{resize:vertical;min-height:90px;}
+.field input::placeholder,.field textarea::placeholder{color:var(--dim);}
+
+/* Checkbox group */
+.check-group{display:flex;flex-wrap:wrap;gap:.5rem;}
+.check-pill{
+  display:flex;align-items:center;gap:.35rem;
+  background:var(--s2);border:1px solid var(--border);
+  padding:.4rem .8rem;cursor:pointer;transition:all .15s;
+  font-size:.78rem;
+  user-select:none;
+}
+.check-pill:hover{border-color:var(--border2);}
+.check-pill.on{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.check-pill input{display:none;}
+
+/* Search */
+.search-wrap{
+  display:flex;align-items:center;
+  background:var(--s2);border:1px solid var(--border);
+  padding:0 .8rem;gap:.5rem;flex:1;max-width:300px;
+}
+.search-wrap svg{color:var(--dim);flex-shrink:0;}
+.search-wrap input{
+  background:none;border:none;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:.83rem;
+  padding:.55rem 0;outline:none;width:100%;
+}
+
+/* Toolbar */
+.toolbar{
+  display:flex;align-items:center;gap:.6rem;
+  margin-bottom:1.2rem;flex-wrap:wrap;
+}
+.toolbar-right{margin-left:auto;display:flex;gap:.5rem;}
+
+/* Empty state */
+.empty{
+  text-align:center;padding:4rem 2rem;
+  border:1px dashed var(--border2);
+}
+.empty-icon{font-size:2.5rem;opacity:.3;margin-bottom:1rem;}
+.empty-txt{color:var(--muted);font-size:.85rem;}
+
+/* Product thumbnail */
+.prod-thumb{
+  width:44px;height:44px;
+  background:var(--s3);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;overflow:hidden;font-size:1.2rem;
+}
+.prod-thumb img{width:100%;height:100%;object-fit:cover;}
+
+/* Jersey SVG preview */
+.jersey-mini{
+  width:44px;height:48px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* Price display */
+.price-display{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+.mrp-val{font-size:.78rem;color:var(--dim);text-decoration:line-through;}
+.sale-val{font-size:.95rem;font-weight:700;}
+.disc-tag{
+  font-size:.6rem;font-weight:800;
+  background:var(--gold-dim);color:var(--gold);
+  padding:.1rem .4rem;
+}
+
+/* Discount calc display */
+.disc-calc{
+  background:var(--gold-dim2);border:1px solid rgba(200,168,75,.15);
+  padding:.65rem .9rem;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.disc-calc-label{font-size:.68rem;color:var(--muted);}
+.disc-calc-val{font-size:1.1rem;font-weight:700;color:var(--gold);}
+
+/* ═══════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════ */
+.overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.88);backdrop-filter:blur(6px);
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:2rem 1rem;overflow-y:auto;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:var(--s1);border:1px solid var(--border2);
+  width:100%;max-width:780px;
+  transform:translateY(20px);transition:transform .3s cubic-bezier(.25,.8,.25,1);
+  flex-shrink:0;
+}
+.overlay.open .modal{transform:translateY(0);}
+.modal-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.2rem 1.6rem;
+  border-bottom:1px solid var(--border);
+}
+.modal-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.15rem;letter-spacing:1px;
+}
+.modal-sub{font-size:.68rem;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;}
+.modal-close{
+  background:none;border:1px solid var(--border);
+  color:var(--muted);width:30px;height:30px;
+  font-size:.9rem;cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;
+}
+.modal-close:hover{border-color:var(--text);color:var(--text);}
+.modal-body{padding:1.6rem;}
+.modal-ft{
+  border-top:1px solid var(--border);
+  padding:1rem 1.6rem;
+  display:flex;justify-content:flex-end;gap:.6rem;
+}
+
+/* ═══════════════════════════════════════════
+   IMAGE UPLOAD
+═══════════════════════════════════════════ */
+.img-upload-area{
+  border:2px dashed var(--border2);
+  padding:2rem;text-align:center;cursor:pointer;
+  transition:all .2s;background:var(--s0);
+}
+.img-upload-area:hover,.img-upload-area.drag{
+  border-color:var(--gold);background:var(--gold-dim2);
+}
+.img-upload-icon{font-size:2rem;opacity:.4;margin-bottom:.5rem;}
+.img-upload-txt{font-size:.8rem;color:var(--muted);}
+.img-upload-txt span{color:var(--gold);text-decoration:underline;}
+.img-grid{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.8rem;}
+.img-item{
+  width:80px;height:80px;
+  background:var(--s2);border:1px solid var(--border);
+  position:relative;overflow:hidden;cursor:pointer;
+}
+.img-item img{width:100%;height:100%;object-fit:cover;}
+.img-item.featured{border-color:var(--gold);}
+.img-item .img-del{
+  position:absolute;top:2px;right:2px;
+  background:rgba(0,0,0,.8);border:none;
+  color:var(--danger);width:18px;height:18px;
+  font-size:.75rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.img-item .img-star{
+  position:absolute;bottom:2px;left:2px;
+  background:rgba(0,0,0,.8);border:none;
+  color:var(--dim);width:18px;height:18px;
+  font-size:.65rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.img-item.featured .img-star{color:var(--gold);}
+.img-item .img-featured-label{
+  position:absolute;bottom:0;left:0;right:0;
+  background:var(--gold);color:#000;
+  font-size:.52rem;font-weight:800;
+  text-align:center;letter-spacing:1px;
+  padding:.1rem;
+}
+
+/* ═══════════════════════════════════════════
+   SECTION MANAGER
+═══════════════════════════════════════════ */
+.section-tabs{
+  display:flex;gap:.3rem;margin-bottom:1.4rem;
+  border-bottom:1px solid var(--border);
+}
+.section-tab{
+  padding:.65rem 1.2rem;
+  font-size:.75rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.8px;
+  color:var(--muted);cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all .18s;margin-bottom:-1px;
+}
+.section-tab:hover{color:var(--text);}
+.section-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+.section-columns{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.section-pool{background:var(--s0);border:1px solid var(--border);padding:1rem;}
+.section-pool-title{
+  font-size:.62rem;text-transform:uppercase;
+  letter-spacing:1.5px;color:var(--muted);
+  margin-bottom:.8rem;font-weight:600;
+}
+.pool-list{min-height:200px;display:flex;flex-direction:column;gap:.35rem;}
+.pool-item{
+  display:flex;align-items:center;gap:.65rem;
+  background:var(--s2);border:1px solid var(--border);
+  padding:.55rem .75rem;
+  cursor:grab;transition:all .15s;
+  user-select:none;
+}
+.pool-item:active{cursor:grabbing;}
+.pool-item.dragging{opacity:.4;}
+.pool-item.drag-over{border-color:var(--gold);background:var(--gold-dim2);}
+.pool-item-drag{color:var(--dim);flex-shrink:0;font-size:1rem;}
+.pool-item-name{font-size:.8rem;flex:1;line-height:1.3;}
+.pool-item-cat{font-size:.6rem;color:var(--dim);}
+.pool-item-btn{
+  background:none;border:none;cursor:pointer;
+  padding:.25rem;transition:color .15s;
+  display:flex;align-items:center;
+}
+.pool-item-btn.add-btn{color:var(--success);}
+.pool-item-btn.add-btn:hover{color:#6fd4a8;}
+.pool-item-btn.rem-btn{color:var(--danger);}
+.pool-item-btn.rem-btn:hover{color:#f07070;}
+
+/* ═══════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════ */
+.settings-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:1.4rem;}
+.settings-section-title{
+  font-size:.6rem;color:var(--gold);
+  text-transform:uppercase;letter-spacing:2px;
+  margin-bottom:1rem;font-weight:700;
+}
+.wa-preview{
+  background:var(--s0);border:1px solid var(--border);
+  padding:1.2rem;font-family:'DM Mono',monospace;
+  font-size:.75rem;color:var(--muted);
+  line-height:1.8;white-space:pre-wrap;
+}
+.wa-preview .highlight{color:var(--gold);}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+#toast-wrap{
+  position:fixed;bottom:1.5rem;right:1.5rem;
+  z-index:999;display:flex;flex-direction:column;gap:.5rem;
+}
+.toast{
+  background:var(--s2);border-left:3px solid var(--gold);
+  padding:.8rem 1.2rem;
+  font-size:.8rem;
+  transform:translateX(120%);transition:transform .3s cubic-bezier(.25,.8,.25,1);
+  min-width:220px;max-width:320px;
+  display:flex;align-items:center;gap:.6rem;
+}
+.toast.show{transform:translateX(0);}
+.toast.t-success{border-left-color:var(--success);}
+.toast.t-danger{border-left-color:var(--danger);}
+
+/* ═══════════════════════════════════════════
+   CONFIRM DIALOG
+═══════════════════════════════════════════ */
+#confirm-overlay{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.85);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+#confirm-overlay.open{opacity:1;pointer-events:all;}
+.confirm-box{
+  background:var(--s1);border:1px solid var(--border2);
+  padding:2rem;max-width:360px;width:90%;text-align:center;
+}
+.confirm-icon{font-size:2rem;margin-bottom:.75rem;}
+.confirm-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1px;margin-bottom:.4rem;}
+.confirm-txt{font-size:.83rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.6;}
+.confirm-btns{display:flex;gap:.6rem;justify-content:center;}
+
+/* ═══════════════════════════════════════════
+   PRODUCT LIST CARD (grid view option)
+═══════════════════════════════════════════ */
+.prod-list-img{
+  width:56px;height:56px;flex-shrink:0;
+  background:var(--s3);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.prod-list-img img{width:100%;height:100%;object-fit:cover;}
+
+/* ═══════════════════════════════════════════
+   DRAG GHOST PREVENTION
+═══════════════════════════════════════════ */
+.no-select{user-select:none;}
+
+/* ═══════════════════════════════════════════
+   WELCOME BANNER
+═══════════════════════════════════════════ */
+.welcome-banner{
+  background:linear-gradient(135deg,var(--s1) 0%,var(--s2) 100%);
+  border:1px solid var(--border);
+  border-left:3px solid var(--gold);
+  padding:1.2rem 1.6rem;
+  margin-bottom:1.4rem;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.wb-text h2{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.2rem;letter-spacing:1.5px;
+  margin-bottom:.2rem;
+}
+.wb-text p{font-size:.78rem;color:var(--muted);}
+
+/* ═══════════════════════════════════════════
+   CATEGORY COLOR DOTS
+═══════════════════════════════════════════ */
+.cat-dot{
+  width:8px;height:8px;border-radius:50%;
+  display:inline-block;flex-shrink:0;
+}
+
+/* ═══════════════════════════════════════════
+   PRIORITY INPUT
+═══════════════════════════════════════════ */
+.priority-input{
+  width:60px;background:var(--s0);
+  border:1px solid var(--border);
+  color:var(--text);font-family:'DM Mono',monospace;
+  font-size:.78rem;padding:.3rem .5rem;
+  text-align:center;outline:none;
+}
+.priority-input:focus{border-color:var(--gold);}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media(max-width:900px){
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .section-columns{grid-template-columns:1fr;}
+  .settings-grid{grid-template-columns:1fr;}
+  .form-row{grid-template-columns:1fr;}
+  .form-row-3{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:640px){
+  :root{--sidebar:0px;}
+  #sidebar{display:none;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .form-row-3{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     SHELL
+══════════════════════════════════════════ -->
+<div id="shell">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-mark">RIVAL <em>IN</em> RETRO</div>
+      <div class="sb-logo-sub">Admin Panel</div>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="sb-group-label">Overview</div>
+      <div class="sb-item active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+
+      <div class="sb-group-label">Catalogue</div>
+      <div class="sb-item" data-view="products">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        All Products
+        <span class="sb-badge" id="sb-prod-count">0</span>
+      </div>
+      <div class="sb-item" data-view="sections">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Section Manager
+      </div>
+
+      <div class="sb-group-label">Configuration</div>
+      <div class="sb-item" data-view="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+        Settings
+      </div>
+    </nav>
+
+    <div class="sb-footer">
+      <div class="sb-footer-text">v1.0 · Rival in Retro</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main">
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <div class="topbar-left">
+        <div>
+          <div class="page-title" id="page-title">Dashboard</div>
+          <div class="page-sub" id="page-sub">Welcome back</div>
+        </div>
+      </div>
+      <div class="topbar-right" id="topbar-actions"></div>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content"></div>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PRODUCT MODAL
+══════════════════════════════════════════ -->
+<div class="overlay" id="prod-modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div>
+        <div class="modal-sub" id="modal-mode-label">Add Product</div>
+        <div class="modal-title" id="modal-title-label">NEW JERSEY</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+
+        <!-- Images -->
+        <div class="field">
+          <label>Product Images</label>
+          <div class="img-upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+            <div class="img-upload-icon">📸</div>
+            <div class="img-upload-txt">Click to upload or <span>browse files</span><br><small>JPG, PNG, WEBP — Multiple allowed</small></div>
+          </div>
+          <input type="file" id="file-input" multiple accept="image/*" style="display:none" onchange="handleImages(this)">
+          <div class="img-grid" id="img-preview"></div>
+        </div>
+
+        <!-- Basic Info -->
+        <div class="form-row">
+          <div class="field" style="grid-column:1/-1">
+            <label>Product Title *</label>
+            <input type="text" id="f-name" placeholder="e.g. Real Madrid Home Jersey 2025/26">
+          </div>
+          <div class="field">
+            <label>Category *</label>
+            <select id="f-cat">
+              <option value="">Select category…</option>
+              <option value="football-club">⚽ Football Club Jerseys</option>
+              <option value="intl-football">🌍 International Football</option>
+              <option value="world-cup">🏆 World Cup 2026</option>
+              <option value="ipl">🏏 IPL 2026</option>
+              <option value="cricket">🌏 International Cricket</option>
+              <option value="retro">🕰 Retro Collection</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Badge / Tag</label>
+            <input type="text" id="f-badge" placeholder="e.g. Bestseller, 🔥 Hot, ★ Legend">
+          </div>
+        </div>
+
+        <!-- Pricing -->
+        <div class="form-row-3">
+          <div class="field">
+            <label>Compare Price (MRP) ₹ *</label>
+            <input type="number" id="f-mrp" placeholder="2499" oninput="calcDisc()">
+          </div>
+          <div class="field">
+            <label>Selling Price ₹ *</label>
+            <input type="number" id="f-price" placeholder="1299" oninput="calcDisc()">
+          </div>
+          <div class="field">
+            <label>Discount</label>
+            <div class="disc-calc">
+              <span class="disc-calc-label">Auto-calculated</span>
+              <span class="disc-calc-val" id="disc-preview">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sizes -->
+        <div class="field">
+          <label>Available Sizes</label>
+          <div class="check-group" id="size-group">
+            <label class="check-pill" onclick="togglePill(this)"><input type="checkbox" value="XS">XS</label>
+            <label class="check-pill on" onclick="togglePill(this)"><input type="checkbox" value="S" checked>S</label>
+            <label class="check-pill on" onclick="togglePill(this)"><input type="checkbox" value="M" checked>M</label>
+            <label class="check-pill on" onclick="togglePill(this)"><input type="checkbox" value="L" checked>L</label>
+            <label class="check-pill on" onclick="togglePill(this)"><input type="checkbox" value="XL" checked>XL</label>
+            <label class="check-pill" onclick="togglePill(this)"><input type="checkbox" value="XXL">XXL</label>
+          </div>
+        </div>
+
+        <!-- Quantity & Description -->
+        <div class="form-row">
+          <div class="field">
+            <label>Stock Quantity</label>
+            <input type="number" id="f-qty" placeholder="50" min="0">
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select id="f-status">
+              <option value="active">Active — Visible on store</option>
+              <option value="hidden">Hidden — Not visible</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Product Description</label>
+          <textarea id="f-desc" placeholder="Describe the jersey — fabric, print quality, fit, etc."></textarea>
+        </div>
+
+        <!-- Section assignment -->
+        <div class="field">
+          <label>Assign to Sections</label>
+          <div class="check-group">
+            <label class="check-pill" onclick="togglePill(this)"><input type="checkbox" value="shop">Shop (All)</label>
+            <label class="check-pill" onclick="togglePill(this)"><input type="checkbox" value="world-cup-section">WC 2026</label>
+            <label class="check-pill" onclick="togglePill(this)"><input type="checkbox" value="ipl-section">IPL 2026</label>
+            <label class="check-pill" onclick="togglePill(this)"><input type="checkbox" value="retro-section">Retro</label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProduct()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Product
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">⚠️</div>
+    <div class="confirm-title">CONFIRM DELETE</div>
+    <div class="confirm-txt" id="confirm-txt"></div>
+    <div class="confirm-btns">
+      <button class="btn btn-ghost" onclick="confirmResolve(false)">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmResolve(true)">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-wrap"></div>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+/* ─── CONSTANTS ─────────────────────────────────────── */
+const CAT_MAP = {
+  'football-club': {label:'Football Club', color:'#6CABDD'},
+  'intl-football':  {label:'International Football', color:'#4caf8a'},
+  'world-cup':      {label:'World Cup 2026', color:'#c8a84b'},
+  'ipl':            {label:'IPL 2026', color:'#e05252'},
+  'cricket':        {label:'International Cricket', color:'#9b8fef'},
+  'retro':          {label:'Retro Collection', color:'#ff9f6a'},
+};
+const SECTIONS = [
+  {id:'shop',         label:'Shop (All Jerseys)',    icon:'🛍'},
+  {id:'world-cup-section', label:'World Cup 2026',   icon:'🏆'},
+  {id:'ipl-section',  label:'IPL 2026',              icon:'🏏'},
+  {id:'retro-section',label:'Retro Collection',      icon:'🕰'},
+];
+const SEED_PRODUCTS = [
+  {id:'p1',name:'Real Madrid Home Jersey 2024/25',cat:'football-club',mrp:2499,price:1299,sizes:['S','M','L','XL'],qty:50,badge:'Bestseller',desc:'Official fan-edition Real Madrid home jersey. Breathable polyester fabric with moisture-wicking technology.',status:'active',images:[],sections:['shop'],priority:1},
+  {id:'p2',name:'Manchester City Third Kit 2024/25',cat:'football-club',mrp:2499,price:1299,sizes:['M','L','XL'],qty:30,badge:'',desc:'Man City third kit in signature sky blue and navy.',status:'active',images:[],sections:['shop'],priority:2},
+  {id:'p3',name:'FC Barcelona Home Jersey 2024/25',cat:'football-club',mrp:2499,price:1299,sizes:['S','M','L','XL','XXL'],qty:40,badge:'',desc:'Barcelona classic blaugrana stripes home jersey.',status:'active',images:[],sections:['shop'],priority:3},
+  {id:'p4',name:'Arsenal Third Kit 2024/25',cat:'football-club',mrp:2499,price:1299,sizes:['S','M','L'],qty:25,badge:'',desc:'Arsenal stylish third kit edition.',status:'active',images:[],sections:['shop'],priority:4},
+  {id:'p5',name:'Liverpool Home Jersey 2024/25',cat:'football-club',mrp:2499,price:1299,sizes:['S','M','L','XL'],qty:45,badge:'🔥 Hot',desc:'Liverpool iconic red home jersey.',status:'active',images:[],sections:['shop'],priority:5},
+  {id:'p6',name:'PSG Home Jersey 2024/25',cat:'football-club',mrp:2499,price:1299,sizes:['M','L','XL'],qty:35,badge:'',desc:'Paris Saint-Germain home kit with premium finish.',status:'active',images:[],sections:['shop'],priority:6},
+  {id:'p7',name:'Brazil Home Jersey 2024',cat:'intl-football',mrp:2299,price:1199,sizes:['S','M','L','XL'],qty:50,badge:'',desc:'Brazil national team classic yellow and green home jersey.',status:'active',images:[],sections:['shop'],priority:7},
+  {id:'p8',name:'Argentina Home Jersey 2024',cat:'intl-football',mrp:2299,price:1199,sizes:['S','M','L','XL'],qty:60,badge:'Top Pick',desc:'Argentina iconic blue and white striped jersey.',status:'active',images:[],sections:['shop'],priority:8},
+  {id:'p9',name:'France Away Jersey 2024',cat:'intl-football',mrp:2299,price:1199,sizes:['M','L','XL'],qty:30,badge:'',desc:'France elegant away jersey.',status:'active',images:[],sections:['shop'],priority:9},
+  {id:'p10',name:'Germany Home Jersey 2024',cat:'intl-football',mrp:2299,price:1199,sizes:['S','M','L'],qty:25,badge:'',desc:'Germany classic white home jersey.',status:'active',images:[],sections:['shop'],priority:10},
+  {id:'p11',name:'Spain Home Jersey 2024',cat:'intl-football',mrp:2299,price:1199,sizes:['M','L','XL'],qty:30,badge:'',desc:'Spain red and gold home jersey.',status:'active',images:[],sections:['shop'],priority:11},
+  {id:'p12',name:'Brazil World Cup 2026 Home Jersey',cat:'world-cup',mrp:2799,price:1499,sizes:['S','M','L','XL'],qty:80,badge:'🔥 Trending',desc:'Brazil official 2026 World Cup home jersey.',status:'active',images:[],sections:['shop','world-cup-section'],priority:1},
+  {id:'p13',name:'England World Cup 2026 Home Jersey',cat:'world-cup',mrp:2799,price:1499,sizes:['S','M','L','XL','XXL'],qty:70,badge:'🔥 Trending',desc:'England 2026 World Cup home jersey.',status:'active',images:[],sections:['shop','world-cup-section'],priority:2},
+  {id:'p14',name:'Argentina World Cup 2026 Home Jersey',cat:'world-cup',mrp:2799,price:1499,sizes:['S','M','L','XL'],qty:90,badge:'🔥 Trending',desc:'Argentina 2026 World Cup champions jersey.',status:'active',images:[],sections:['shop','world-cup-section'],priority:3},
+  {id:'p15',name:'Portugal World Cup 2026 Away Jersey',cat:'world-cup',mrp:2799,price:1499,sizes:['M','L','XL'],qty:45,badge:'',desc:'Portugal 2026 away kit.',status:'active',images:[],sections:['shop','world-cup-section'],priority:4},
+  {id:'p16',name:'Spain World Cup 2026 Home Jersey',cat:'world-cup',mrp:2799,price:1499,sizes:['S','M','L'],qty:50,badge:'',desc:'Spain 2026 home jersey.',status:'active',images:[],sections:['shop','world-cup-section'],priority:5},
+  {id:'p17',name:'Morocco World Cup 2026 Home Jersey',cat:'world-cup',mrp:2799,price:1499,sizes:['M','L','XL'],qty:35,badge:'',desc:'Morocco 2026 home jersey.',status:'active',images:[],sections:['shop','world-cup-section'],priority:6},
+  {id:'p18',name:'Mumbai Indians IPL 2026 Jersey',cat:'ipl',mrp:1999,price:999,sizes:['S','M','L','XL'],qty:100,badge:'🏏 IPL 2026',desc:'MI official 2026 IPL jersey.',status:'active',images:[],sections:['shop','ipl-section'],priority:1},
+  {id:'p19',name:'Chennai Super Kings IPL 2026 Jersey',cat:'ipl',mrp:1999,price:999,sizes:['S','M','L','XL','XXL'],qty:95,badge:'🏏 IPL 2026',desc:'CSK yellow 2026 jersey.',status:'active',images:[],sections:['shop','ipl-section'],priority:2},
+  {id:'p20',name:'Royal Challengers Bengaluru IPL 2026 Jersey',cat:'ipl',mrp:1999,price:999,sizes:['S','M','L','XL'],qty:85,badge:'🏏 IPL 2026',desc:'RCB red and black jersey.',status:'active',images:[],sections:['shop','ipl-section'],priority:3},
+  {id:'p21',name:'Kolkata Knight Riders IPL 2026 Jersey',cat:'ipl',mrp:1999,price:999,sizes:['M','L','XL'],qty:75,badge:'🏏 IPL 2026',desc:'KKR purple and gold jersey.',status:'active',images:[],sections:['shop','ipl-section'],priority:4},
+  {id:'p22',name:'Rajasthan Royals IPL 2026 Jersey',cat:'ipl',mrp:1999,price:999,sizes:['S','M','L'],qty:60,badge:'',desc:'RR pink and blue jersey.',status:'active',images:[],sections:['shop','ipl-section'],priority:5},
+  {id:'p23',name:'Sunrisers Hyderabad IPL 2026 Jersey',cat:'ipl',mrp:1999,price:999,sizes:['M','L','XL'],qty:65,badge:'',desc:'SRH orange and black jersey.',status:'active',images:[],sections:['shop','ipl-section'],priority:6},
+  {id:'p24',name:'Delhi Capitals IPL 2026 Jersey',cat:'ipl',mrp:1999,price:999,sizes:['S','M','L','XL'],qty:70,badge:'',desc:'DC blue and red jersey.',status:'active',images:[],sections:['shop','ipl-section'],priority:7},
+  {id:'p25',name:'Punjab Kings IPL 2026 Jersey',cat:'ipl',mrp:1999,price:999,sizes:['M','L','XL'],qty:55,badge:'',desc:'PBKS red and gold jersey.',status:'active',images:[],sections:['shop','ipl-section'],priority:8},
+  {id:'p26',name:'India ODI Blue Jersey 2024',cat:'cricket',mrp:2199,price:1099,sizes:['S','M','L','XL'],qty:120,badge:'Top Seller',desc:'Team India official ODI blue jersey.',status:'active',images:[],sections:['shop'],priority:1},
+  {id:'p27',name:'India T20 World Champions Edition',cat:'cricket',mrp:2199,price:1099,sizes:['S','M','L','XL','XXL'],qty:100,badge:'🏆 Champions',desc:'Commemorative India T20 World Cup champions jersey.',status:'active',images:[],sections:['shop'],priority:2},
+  {id:'p28',name:'Pakistan ODI Green Jersey 2024',cat:'cricket',mrp:2199,price:1099,sizes:['M','L','XL'],qty:60,badge:'',desc:'Pakistan classic green ODI jersey.',status:'active',images:[],sections:['shop'],priority:3},
+  {id:'p29',name:'Australia ODI Jersey 2024',cat:'cricket',mrp:2199,price:1099,sizes:['S','M','L','XL'],qty:55,badge:'',desc:'Australia yellow ODI jersey.',status:'active',images:[],sections:['shop'],priority:4},
+  {id:'p30',name:'England Test Whites Classic Edition',cat:'cricket',mrp:2199,price:1099,sizes:['M','L','XL'],qty:40,badge:'',desc:'England classic whites test jersey.',status:'active',images:[],sections:['shop'],priority:5},
+  {id:'p31',name:'Brazil 1970 World Cup Retro Jersey',cat:'retro',mrp:2999,price:1599,sizes:['S','M','L','XL'],qty:30,badge:'★ Legend',desc:'Iconic 1970 Brazil World Cup retro reproduction.',status:'active',images:[],sections:['shop','retro-section'],priority:1},
+  {id:'p32',name:"Argentina 1986 Maradona Era Retro Jersey",cat:'retro',mrp:2999,price:1599,sizes:['S','M','L','XL'],qty:25,badge:'★ Icon',desc:'1986 Argentina retro jersey from the Maradona era.',status:'active',images:[],sections:['shop','retro-section'],priority:2},
+  {id:'p33',name:'India 1983 World Cup Retro Cricket Jersey',cat:'retro',mrp:2999,price:1599,sizes:['M','L','XL'],qty:20,badge:'★ Historic',desc:'1983 World Cup winning India jersey replica.',status:'active',images:[],sections:['shop','retro-section'],priority:3},
+  {id:'p34',name:'Manchester United 1999 Treble Season Retro',cat:'retro',mrp:2999,price:1599,sizes:['S','M','L','XL'],qty:22,badge:'★ Classic',desc:'Man United treble-winning 1999 season retro kit.',status:'active',images:[],sections:['shop','retro-section'],priority:4},
+  {id:'p35',name:'France 1998 World Cup Winners Retro Jersey',cat:'retro',mrp:2999,price:1599,sizes:['M','L','XL'],qty:18,badge:'★ Legend',desc:'France 1998 World Cup winning retro jersey.',status:'active',images:[],sections:['shop','retro-section'],priority:5},
+];
+
+/* ─── FIREBASE CONFIG — REPLACE WITH YOUR OWN ────────── */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCVHYTIRY-hBh2XHRYkuy4ShLeT3-rByi8",
+  authDomain: "rivalinretro-8a562.firebaseapp.com",
+  projectId: "rivalinretro-8a562",
+  storageBucket: "rivalinretro-8a562.firebasestorage.app",
+  messagingSenderId: "200802063722",
+  appId: "1:200802063722:web:aea58b7801613814d08113"
+};
+
+/* ─── FIREBASE INIT ──────────────────────────────────── */
+firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.firestore();
+const PROD_COL = db.collection('products');
+const SETTINGS_DOC = db.collection('settings').doc('main');
+
+/* ─── IN-MEMORY CACHE (keeps render functions synchronous) */
+let _products = [];
+let _settings  = { wa:'919999999999', brand:'Rival in Retro' };
+let _dbReady   = false;
+
+function getProducts(){ return _products; }
+function getSettings(){ return _settings; }
+
+/* ─── FIRESTORE: REAL-TIME PRODUCT LISTENER ──────────── */
+PROD_COL.orderBy('priority').onSnapshot(snap => {
+  _products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  _dbReady  = true;
+  updateSidebarCounts();
+  // Re-render active view so changes appear live
+  if(currentView === 'dashboard') renderDashboard();
+  else if(currentView === 'products') renderProducts();
+  else if(currentView === 'sections') renderSectionBody();
+}, err => {
+  console.error('Firestore products error:', err);
+  showDBError();
+});
+
+/* ─── FIRESTORE: SETTINGS LISTENER ───────────────────── */
+SETTINGS_DOC.onSnapshot(snap => {
+  if(snap.exists) _settings = snap.data();
+}, err => console.error('Settings error:', err));
+
+/* ─── FIRESTORE: WRITE HELPERS ───────────────────────── */
+async function fbSaveProduct(p){
+  const id = p.id || 'p'+Date.now();
+  const doc = { ...p, id };
+  await PROD_COL.doc(id).set(doc);
+  return id;
+}
+async function fbDeleteProduct(id){ await PROD_COL.doc(id).delete(); }
+async function fbSaveSettings(s){ await SETTINGS_DOC.set(s); }
+
+/* ─── IMAGE COMPRESSION (keeps Firestore docs small) ─── */
+async function compressImage(dataURL, maxW=600, quality=0.75){
+  return new Promise(res=>{
+    const img=new Image(); img.src=dataURL;
+    img.onload=()=>{
+      const ratio=Math.min(1,maxW/img.width);
+      const c=document.createElement('canvas');
+      c.width=img.width*ratio; c.height=img.height*ratio;
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      res(c.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>res(dataURL);
+  });
+}
+
+/* ─── FIRST-RUN SEEDING ──────────────────────────────── */
+async function seedIfEmpty(){
+  const snap = await PROD_COL.limit(1).get();
+  if(!snap.empty) return; // already has data
+  showSeedingBanner();
+  const batch = db.batch();
+  SEED_PRODUCTS.forEach(p => batch.set(PROD_COL.doc(p.id), p));
+  batch.set(SETTINGS_DOC, { wa:'919999999999', brand:'Rival in Retro' });
+  await batch.commit();
+  hideSeedingBanner();
+  toast('Store seeded with 35 demo products!','success');
+}
+
+function showSeedingBanner(){
+  const el=document.createElement('div');
+  el.id='seed-banner';
+  el.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;';
+  el.innerHTML=`<div style="font-family:\'Bebas Neue\',sans-serif;font-size:2rem;letter-spacing:3px">RIVAL <span style="color:#c8a84b">IN</span> RETRO</div>
+    <div style="color:#888;font-size:.85rem">Connecting to Firebase & seeding demo data…</div>
+    <div style="width:200px;height:3px;background:#222;position:relative;overflow:hidden"><div style="position:absolute;left:0;top:0;height:100%;width:40%;background:#c8a84b;animation:slide 1s linear infinite"></div></div>
+    <style>@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}</style>`;
+  document.body.appendChild(el);
+}
+function hideSeedingBanner(){ document.getElementById('seed-banner')?.remove(); }
+
+function showDBError(){
+  document.getElementById('content').innerHTML=`
+    <div style="text-align:center;padding:4rem;border:1px dashed #e05252">
+      <div style="font-size:2rem;margin-bottom:1rem">⚠️</div>
+      <div style="color:#e05252;font-weight:700;margin-bottom:.5rem">Firebase Connection Failed</div>
+      <div style="color:#888;font-size:.82rem;max-width:400px;margin:0 auto">Check that your <code>FIREBASE_CONFIG</code> values are correct and Firestore rules allow read/write. See the setup guide for help.</div>
+    </div>`;
+}
+
+/* ─── LEGACY saveProducts (no-op — individual writes used now) */
+function saveProducts(arr){ /* handled by fbSaveProduct per item */ }
+
+/* ─── VIEWS ──────────────────────────────────────────── */
+let currentView = 'dashboard';
+
+function navigate(view){
+  currentView = view;
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.toggle('active',i.dataset.view===view));
+  const titles = {
+    dashboard:{t:'Dashboard',s:'Welcome back — here\'s your store at a glance'},
+    products:{t:'All Products',s:'Manage your complete jersey catalogue'},
+    sections:{t:'Section Manager',s:'Control which jerseys appear in each storefront section'},
+    settings:{t:'Settings',s:'Configure WhatsApp, store details and preferences'},
+  };
+  const ti = titles[view]||{t:view,s:''};
+  document.getElementById('page-title').textContent = ti.t;
+  document.getElementById('page-sub').textContent   = ti.s;
+  const renders = {dashboard:renderDashboard,products:renderProducts,sections:renderSections,settings:renderSettings};
+  if(renders[view]) renders[view]();
+}
+
+document.querySelectorAll('.sb-item[data-view]').forEach(el=>{
+  el.addEventListener('click',()=>navigate(el.dataset.view));
+});
+
+/* ─── DASHBOARD ───────────────────────────────────────── */
+function renderDashboard(){
+  document.getElementById('topbar-actions').innerHTML='';
+  const prods = getProducts();
+  const active = prods.filter(p=>p.status==='active').length;
+  const cats = [...new Set(prods.map(p=>p.cat))].length;
+  const totalQty = prods.reduce((a,p)=>a+(p.qty||0),0);
+  const avgDisc = Math.round(prods.reduce((a,p)=>{const d=p.mrp&&p.price?Math.round((1-p.price/p.mrp)*100):0;return a+d;},0)/prods.length);
+
+  const c = document.getElementById('content');
+  c.innerHTML = `
+  <div class="welcome-banner">
+    <div class="wb-text">
+      <h2>RIVAL IN RETRO — CONTROL CENTRE</h2>
+      <p>Your store is live. Manage products, sections, and settings from this panel.</p>
+    </div>
+    <button class="btn btn-primary" onclick="navigate('products')">+ Add Product</button>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div><div class="stat-n">${prods.length}</div><div class="stat-l">Total Products</div></div>
+      <div class="stat-icon">🏷</div>
+    </div>
+    <div class="stat-card">
+      <div><div class="stat-n">${active}</div><div class="stat-l">Active Listings</div></div>
+      <div class="stat-icon">✅</div>
+    </div>
+    <div class="stat-card">
+      <div><div class="stat-n">${totalQty}</div><div class="stat-l">Units in Stock</div></div>
+      <div class="stat-icon">📦</div>
+    </div>
+    <div class="stat-card">
+      <div><div class="stat-n">${avgDisc}%</div><div class="stat-l">Avg. Discount</div></div>
+      <div class="stat-icon">💰</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem">
+    <div class="card">
+      <div class="card-title">Category Breakdown</div>
+      ${Object.entries(CAT_MAP).map(([k,v])=>{
+        const count = prods.filter(p=>p.cat===k).length;
+        const pct = prods.length ? Math.round(count/prods.length*100) : 0;
+        return `<div style="margin-bottom:.8rem">
+          <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+            <span style="font-size:.78rem">${v.label}</span>
+            <span style="font-size:.78rem;font-weight:700">${count}</span>
+          </div>
+          <div style="height:3px;background:var(--s3);position:relative">
+            <div style="height:100%;width:${pct}%;background:${v.color};transition:width .4s"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="card">
+      <div class="card-title">Section Overview</div>
+      ${SECTIONS.map(sec=>{
+        const count = prods.filter(p=>p.sections&&p.sections.includes(sec.id)).length;
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <span>${sec.icon}</span>
+            <span style="font-size:.82rem">${sec.label}</span>
+          </div>
+          <span class="badge badge-gold">${count} jerseys</span>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      Recent Products
+      <button class="btn btn-ghost btn-sm" onclick="navigate('products')">View All →</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Product</th><th>Category</th>
+          <th>MRP</th><th>Price</th><th>Disc.</th>
+          <th>Stock</th><th>Status</th>
+        </tr></thead>
+        <tbody>
+          ${prods.slice(0,8).map(p=>prodRow(p)).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+/* ─── PRODUCTS VIEW ───────────────────────────────────── */
+let prodSearch='', prodCatFilter='all';
+
+function renderProducts(){
+  document.getElementById('topbar-actions').innerHTML=`
+    <button class="btn btn-primary" onclick="openModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Product
+    </button>`;
+
+  const prods = getProducts();
+  const filtered = prods.filter(p=>{
+    const matchCat = prodCatFilter==='all'||p.cat===prodCatFilter;
+    const matchSearch = !prodSearch||p.name.toLowerCase().includes(prodSearch.toLowerCase());
+    return matchCat&&matchSearch;
+  });
+
+  document.getElementById('content').innerHTML = `
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search jerseys…" value="${prodSearch}" oninput="prodSearch=this.value;renderProducts()">
+    </div>
+    <select style="background:var(--s2);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.78rem;padding:.55rem .8rem;outline:none;cursor:pointer" onchange="prodCatFilter=this.value;renderProducts()">
+      <option value="all">All Categories</option>
+      ${Object.entries(CAT_MAP).map(([k,v])=>`<option value="${k}" ${prodCatFilter===k?'selected':''}>${v.label}</option>`).join('')}
+    </select>
+    <div class="toolbar-right">
+      <span style="font-size:.75rem;color:var(--muted);align-self:center">${filtered.length} of ${prods.length} products</span>
+    </div>
+  </div>
+
+  ${filtered.length===0?`<div class="empty"><div class="empty-icon">📭</div><div class="empty-txt">No products found. <button class="btn btn-ghost btn-sm" onclick="openModal()">Add one</button></div></div>`:`
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Product</th><th>Category</th>
+        <th>MRP</th><th>Price</th><th>Disc.</th>
+        <th>Sizes</th><th>Stock</th><th>Status</th>
+        <th>Actions</th>
+      </tr></thead>
+      <tbody>${filtered.map(p=>prodRowFull(p)).join('')}</tbody>
+    </table>
+  </div>`}`;
+}
+
+function prodRow(p){
+  const disc = p.mrp&&p.price?Math.round((1-p.price/p.mrp)*100):0;
+  const cat = CAT_MAP[p.cat]||{label:p.cat,color:'#888'};
+  return `<tr>
+    <td><div style="display:flex;align-items:center;gap:.7rem">
+      <div class="prod-list-img">${p.images&&p.images[0]?`<img src="${p.images[0]}" alt="">`:'<span style="font-size:1.3rem">👕</span>'}</div>
+      <div>
+        <div style="font-size:.83rem;font-weight:500;max-width:220px;line-height:1.3">${p.name}</div>
+        ${p.badge?`<span class="badge badge-gold" style="margin-top:.2rem">${p.badge}</span>`:''}
+      </div>
+    </div></td>
+    <td><div style="display:flex;align-items:center;gap:.4rem">
+      <span class="cat-dot" style="background:${cat.color}"></span>
+      <span style="font-size:.78rem;color:var(--muted)">${cat.label}</span>
+    </div></td>
+    <td><span style="text-decoration:line-through;color:var(--dim);font-size:.78rem">₹${(p.mrp||0).toLocaleString('en-IN')}</span></td>
+    <td><strong>₹${(p.price||0).toLocaleString('en-IN')}</strong></td>
+    <td><span class="badge badge-gold">${disc}%</span></td>
+    <td><span class="badge ${p.status==='active'?'badge-success':'badge-danger'}">${p.status}</span></td>
+  </tr>`;
+}
+
+function prodRowFull(p){
+  const disc = p.mrp&&p.price?Math.round((1-p.price/p.mrp)*100):0;
+  const cat = CAT_MAP[p.cat]||{label:p.cat,color:'#888'};
+  const sizes = (p.sizes||[]).join(', ');
+  return `<tr>
+    <td><div style="display:flex;align-items:center;gap:.7rem">
+      <div class="prod-list-img">${p.images&&p.images[0]?`<img src="${p.images[0]}" alt="">`:'<span style="font-size:1.3rem">👕</span>'}</div>
+      <div>
+        <div style="font-size:.83rem;font-weight:500;max-width:200px;line-height:1.3">${p.name}</div>
+        ${p.badge?`<span class="badge badge-gold" style="margin-top:.2rem">${p.badge}</span>`:''}
+      </div>
+    </div></td>
+    <td><div style="display:flex;align-items:center;gap:.4rem">
+      <span class="cat-dot" style="background:${cat.color}"></span>
+      <span style="font-size:.75rem;color:var(--muted)">${cat.label}</span>
+    </div></td>
+    <td><span style="text-decoration:line-through;color:var(--dim);font-size:.78rem">₹${(p.mrp||0).toLocaleString('en-IN')}</span></td>
+    <td><strong>₹${(p.price||0).toLocaleString('en-IN')}</strong></td>
+    <td><span class="badge badge-gold">${disc}%</span></td>
+    <td><span style="font-size:.75rem;color:var(--muted)">${sizes||'—'}</span></td>
+    <td><span style="font-family:'DM Mono',monospace;font-size:.8rem">${p.qty||0}</span></td>
+    <td><span class="badge ${p.status==='active'?'badge-success':'badge-danger'}">${p.status}</span></td>
+    <td>
+      <div class="td-actions">
+        <button class="btn btn-ghost btn-sm btn-icon" title="Edit" onclick="openModal('${p.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm btn-icon" title="Delete" onclick="deleteProduct('${p.id}')">🗑</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+/* ─── SECTIONS VIEW ───────────────────────────────────── */
+let activeSectionTab = 'shop';
+
+function renderSections(){
+  document.getElementById('topbar-actions').innerHTML=`
+    <button class="btn btn-ghost btn-sm" onclick="navigate('products')">+ Add Product</button>`;
+
+  const c = document.getElementById('content');
+  c.innerHTML = `
+  <div class="section-tabs">
+    ${SECTIONS.map(s=>`<div class="section-tab ${activeSectionTab===s.id?'active':''}" onclick="switchSectionTab('${s.id}')">${s.icon} ${s.label}</div>`).join('')}
+  </div>
+  <div id="section-body"></div>`;
+
+  renderSectionBody();
+}
+
+function switchSectionTab(id){
+  activeSectionTab = id;
+  document.querySelectorAll('.section-tab').forEach((t,i)=>{
+    t.classList.toggle('active', SECTIONS[i].id===id);
+  });
+  renderSectionBody();
+}
+
+function renderSectionBody(){
+  const prods = getProducts();
+  const inSection  = prods.filter(p=>(p.sections||[]).includes(activeSectionTab)).sort((a,b)=>(a.priority||99)-(b.priority||99));
+  const notSection = prods.filter(p=>!(p.sections||[]).includes(activeSectionTab));
+
+  document.getElementById('section-body').innerHTML = `
+  <p style="font-size:.78rem;color:var(--muted);margin-bottom:1rem">
+    Drag to reorder jerseys inside the section. Use ➕ to add a jersey, ✕ to remove.
+  </p>
+  <div class="section-columns">
+    <div class="section-pool">
+      <div class="section-pool-title">IN THIS SECTION (${inSection.length})</div>
+      <div class="pool-list" id="pool-in" ondragover="poolDragOver(event)" ondrop="poolDrop(event,'in')">
+        ${inSection.length?inSection.map((p,i)=>poolItem(p,true,i)).join(''):`<div class="empty" style="padding:2rem"><div class="empty-txt">No jerseys in this section yet</div></div>`}
+      </div>
+    </div>
+    <div class="section-pool">
+      <div class="section-pool-title">AVAILABLE TO ADD (${notSection.length})</div>
+      <div class="pool-list" id="pool-out">
+        ${notSection.length?notSection.map((p,i)=>poolItem(p,false,i)).join(''):`<div class="empty" style="padding:2rem"><div class="empty-txt">All products are in this section</div></div>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+function poolItem(p,inSec,idx){
+  return `<div class="pool-item" draggable="${inSec}" data-pid="${p.id}"
+    ondragstart="poolDragStart(event)" ondragend="poolDragEnd(event)"
+    ondragover="itemDragOver(event)" ondragleave="itemDragLeave(event)">
+    <span class="pool-item-drag">${inSec?'⠿':''}</span>
+    <div class="prod-list-img" style="width:36px;height:36px;flex-shrink:0">
+      ${p.images&&p.images[0]?`<img src="${p.images[0]}" alt="">`:'<span style="font-size:.9rem">👕</span>'}
+    </div>
+    <div style="flex:1;min-width:0">
+      <div class="pool-item-name">${p.name}</div>
+      <div class="pool-item-cat">${CAT_MAP[p.cat]?.label||p.cat} · ₹${(p.price||0).toLocaleString('en-IN')}</div>
+    </div>
+    ${inSec
+      ?`<button class="pool-item-btn rem-btn" title="Remove from section" onclick="toggleSection('${p.id}',false)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>`
+      :`<button class="pool-item-btn add-btn" title="Add to section" onclick="toggleSection('${p.id}',true)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>`}
+  </div>`;
+}
+
+function toggleSection(pid, add){
+  const prods = getProducts();
+  const p = prods.find(x=>x.id===pid);
+  if(!p) return;
+  const sections = p.sections ? [...p.sections] : [];
+  if(add){ if(!sections.includes(activeSectionTab)) sections.push(activeSectionTab); }
+  else   { const i=sections.indexOf(activeSectionTab); if(i>-1) sections.splice(i,1); }
+  fbSaveProduct({...p, sections}).then(()=>{
+    toast(add?'Jersey added to section':'Jersey removed from section');
+  });
+}
+
+// Drag-and-drop for reorder
+let dragPid = null;
+
+function poolDragStart(e){
+  dragPid = e.currentTarget.dataset.pid;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+}
+function poolDragEnd(e){
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.pool-item').forEach(el=>el.classList.remove('drag-over'));
+}
+function poolDragOver(e){ e.preventDefault(); e.dataTransfer.dropEffect='move'; }
+function itemDragOver(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function itemDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+function poolDrop(e,target){
+  e.preventDefault();
+  if(!dragPid) return;
+  const prods = getProducts();
+  const overEl = e.target.closest('.pool-item');
+  const overPid = overEl?.dataset.pid;
+  const inSec = prods.filter(p=>(p.sections||[]).includes(activeSectionTab)).sort((a,b)=>(a.priority||99)-(b.priority||99));
+  const fromIdx = inSec.findIndex(p=>p.id===dragPid);
+  const toIdx   = overPid ? inSec.findIndex(p=>p.id===overPid) : inSec.length;
+  if(fromIdx!==-1&&toIdx!==-1&&fromIdx!==toIdx){
+    const [moved] = inSec.splice(fromIdx,1);
+    inSec.splice(toIdx,0,moved);
+    // Batch write updated priorities to Firestore
+    const batch=db.batch();
+    inSec.forEach((p,i)=>{
+      batch.update(PROD_COL.doc(p.id),{priority:i+1});
+    });
+    batch.commit().then(()=>toast('Order saved'));
+    // Optimistic update in local cache for instant UI feedback
+    inSec.forEach((p,i)=>{ const pp=_products.find(x=>x.id===p.id); if(pp) pp.priority=i+1; });
+    renderSectionBody();
+  }
+  dragPid=null;
+}
+
+/* ─── SETTINGS VIEW ───────────────────────────────────── */
+function renderSettings(){
+  document.getElementById('topbar-actions').innerHTML='';
+  const s = getSettings();
+  document.getElementById('content').innerHTML = `
+  <div class="settings-grid">
+    <div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="settings-section-title">📱 WhatsApp Configuration</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>WhatsApp Number (with country code, no +)</label>
+            <input type="text" id="s-wa" value="${s.wa||''}" placeholder="919999999999">
+            <small style="color:var(--dim);font-size:.68rem;margin-top:.2rem">Example: 919876543210 for +91 98765 43210</small>
+          </div>
+          <div class="field">
+            <label>Brand Name (shown in messages)</label>
+            <input type="text" id="s-brand" value="${s.brand||'Rival in Retro'}" placeholder="Rival in Retro">
+          </div>
+          <button class="btn btn-primary" onclick="saveSettingsForm()" style="width:fit-content">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Save Settings
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="settings-section-title">🧹 Data Management</div>
+        <p style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">Reset product data back to the default demo catalogue (35 jerseys). This cannot be undone.</p>
+        <button class="btn btn-danger" onclick="resetData()">⚠ Reset to Demo Data</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="settings-section-title">💬 WhatsApp Message Preview</div>
+        <div class="wa-preview" id="wa-preview-box">${getWAPreview(s)}</div>
+        <p style="font-size:.68rem;color:var(--dim);margin-top:.75rem">This is exactly what customers will see when they tap "Order via WhatsApp"</p>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('s-wa').addEventListener('input', ()=>{
+    const cur = getSettings();
+    document.getElementById('wa-preview-box').innerHTML = getWAPreview({...cur, wa: document.getElementById('s-wa').value, brand: document.getElementById('s-brand').value});
+  });
+  document.getElementById('s-brand').addEventListener('input', ()=>{
+    const cur = getSettings();
+    document.getElementById('wa-preview-box').innerHTML = getWAPreview({...cur, brand: document.getElementById('s-brand').value});
+  });
+}
+
+function getWAPreview(s){
+  const brand = s.brand||'Rival in Retro';
+  return `Hello <span class="highlight">${brand}</span>! 👋\n\nI would like to place an order:\n\n🛒 <span class="highlight">ORDER DETAILS</span>\n━━━━━━━━━━━━━━━━━━━━\n📌 Jersey: <span class="highlight">Real Madrid Home Jersey 2024/25</span>\n🏷 Category: <span class="highlight">Football Club</span>\n📏 Size: <span class="highlight">L</span>\n🔢 Quantity: <span class="highlight">1</span>\n💰 Price per Jersey: <span class="highlight">₹1,299</span>\n💳 Order Total: <span class="highlight">₹1,299</span>\n━━━━━━━━━━━━━━━━━━━━\n\nPlease confirm availability and share payment details. Thank you!`;
+}
+
+function saveSettingsForm(){
+  const s = { wa: document.getElementById('s-wa').value.trim(), brand: document.getElementById('s-brand').value.trim()||'Rival in Retro' };
+  fbSaveSettings(s).then(()=>{ _settings=s; toast('Settings saved & synced!','success'); }).catch(()=>toast('Save failed','danger'));
+}
+
+function resetData(){
+  confirm2('This will reset all 35 demo products. Your custom products will be lost.',async ()=>{
+    showSeedingBanner();
+    const batch=db.batch();
+    // Delete all existing
+    const snap=await PROD_COL.get();
+    snap.docs.forEach(d=>batch.delete(d.ref));
+    // Write seed data
+    SEED_PRODUCTS.forEach(p=>batch.set(PROD_COL.doc(p.id),p));
+    batch.set(SETTINGS_DOC,{wa:'919999999999',brand:'Rival in Retro'});
+    await batch.commit();
+    hideSeedingBanner();
+    toast('Data reset to demo catalogue','success');
+    renderSettings();
+  });
+}
+
+/* ─── PRODUCT MODAL ───────────────────────────────────── */
+let editingId = null;
+let modalImages = []; // [{data: base64, featured: bool}]
+
+function openModal(id){
+  editingId = id||null;
+  modalImages = [];
+  const prods = getProducts();
+  const p = id ? prods.find(x=>x.id===id) : null;
+
+  document.getElementById('modal-mode-label').textContent = id?'Edit Product':'Add Product';
+  document.getElementById('modal-title-label').textContent = id?'EDIT JERSEY':'NEW JERSEY';
+
+  // Sizes
+  document.querySelectorAll('#size-group .check-pill').forEach(el=>{
+    const sz = el.querySelector('input').value;
+    const on = p ? (p.sizes||[]).includes(sz) : ['S','M','L','XL'].includes(sz);
+    el.classList.toggle('on', on);
+    el.querySelector('input').checked = on;
+  });
+
+  // Section pills
+  document.querySelectorAll('.modal-body .check-pill input[type=checkbox]').forEach(inp=>{
+    const pil = inp.closest('.check-pill');
+    const on = p ? (p.sections||[]).includes(inp.value) : inp.value==='shop';
+    if(pil){ pil.classList.toggle('on',on); inp.checked=on; }
+  });
+
+  // Fill fields
+  document.getElementById('f-name').value  = p?.name||'';
+  document.getElementById('f-cat').value   = p?.cat||'';
+  document.getElementById('f-badge').value = p?.badge||'';
+  document.getElementById('f-mrp').value   = p?.mrp||'';
+  document.getElementById('f-price').value = p?.price||'';
+  document.getElementById('f-qty').value   = p?.qty??'';
+  document.getElementById('f-status').value= p?.status||'active';
+  document.getElementById('f-desc').value  = p?.desc||'';
+
+  // Images
+  if(p&&p.images&&p.images.length){
+    modalImages = p.images.map((src,i)=>({data:src,featured:i===0}));
+    if(modalImages.length>0) modalImages[0].featured=true;
+  }
+  renderModalImages();
+  calcDisc();
+
+  document.getElementById('prod-modal').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('prod-modal').classList.remove('open');
+  editingId=null; modalImages=[];
+}
+
+function calcDisc(){
+  const mrp=parseFloat(document.getElementById('f-mrp').value)||0;
+  const price=parseFloat(document.getElementById('f-price').value)||0;
+  const el=document.getElementById('disc-preview');
+  if(mrp>0&&price>0&&mrp>price){ el.textContent=Math.round((1-price/mrp)*100)+'% off'; }
+  else{ el.textContent='—'; }
+}
+
+function togglePill(el){
+  setTimeout(()=>el.classList.toggle('on',el.querySelector('input').checked),0);
+}
+
+function handleImages(input){
+  const files = Array.from(input.files);
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const data=e.target.result;
+      modalImages.push({data,featured:modalImages.length===0});
+      renderModalImages();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+
+function renderModalImages(){
+  const el=document.getElementById('img-preview');
+  if(!modalImages.length){el.innerHTML='';return;}
+  el.innerHTML=modalImages.map((img,i)=>`
+    <div class="img-item ${img.featured?'featured':''}" title="${img.featured?'Featured image':'Click ★ to set as featured'}">
+      <img src="${img.data}" alt="">
+      <button class="img-star" onclick="setFeatured(${i})" title="Set as featured">★</button>
+      <button class="img-del" onclick="delImage(${i})" title="Remove">✕</button>
+      ${img.featured?'<div class="img-featured-label">FEATURED</div>':''}
+    </div>`).join('');
+}
+
+function setFeatured(idx){
+  modalImages.forEach((m,i)=>m.featured=i===idx);
+  const feat=modalImages.splice(idx,1)[0];
+  modalImages.unshift(feat);
+  renderModalImages();
+}
+
+function delImage(idx){
+  modalImages.splice(idx,1);
+  if(modalImages.length>0) modalImages[0].featured=true;
+  renderModalImages();
+}
+
+function saveProduct(){
+  const name=document.getElementById('f-name').value.trim();
+  const cat=document.getElementById('f-cat').value;
+  const mrp=parseFloat(document.getElementById('f-mrp').value);
+  const price=parseFloat(document.getElementById('f-price').value);
+  if(!name){toast('Product title is required','danger');return;}
+  if(!cat){toast('Please select a category','danger');return;}
+  if(!mrp||!price){toast('Please enter both MRP and selling price','danger');return;}
+  if(price>=mrp){toast('Selling price must be less than MRP','danger');return;}
+
+  const sizes=[...document.querySelectorAll('#size-group .check-pill input:checked')].map(i=>i.value);
+  const sections=[...document.querySelectorAll('.modal-body .check-pill input[type=checkbox]:checked')].map(i=>i.value);
+  const prods=getProducts();
+
+  // Compress images before saving to Firestore
+  Promise.all(modalImages.map(m=>compressImage(m.data))).then(async compressed=>{
+    const images = compressed;
+    if(editingId){
+      const existing = prods.find(p=>p.id===editingId)||{};
+      const updated = {
+        ...existing,
+        name,cat,mrp,price,
+        badge:document.getElementById('f-badge').value.trim(),
+        qty:parseInt(document.getElementById('f-qty').value)||0,
+        status:document.getElementById('f-status').value,
+        desc:document.getElementById('f-desc').value.trim(),
+        sizes,sections,images,
+      };
+      await fbSaveProduct(updated);
+      toast('Product updated successfully!','success');
+    } else {
+      const newP={
+        id:'p'+Date.now(),
+        name,cat,mrp,price,
+        badge:document.getElementById('f-badge').value.trim(),
+        qty:parseInt(document.getElementById('f-qty').value)||0,
+        status:document.getElementById('f-status').value,
+        desc:document.getElementById('f-desc').value.trim(),
+        sizes,sections,images,
+        priority:prods.length+1,
+      };
+      await fbSaveProduct(newP);
+      toast('Product added!','success');
+    }
+    closeModal();
+    // onSnapshot will trigger re-render automatically
+  }).catch(e=>{ console.error(e); toast('Save failed — check console','danger'); });
+}
+
+function deleteProduct(id){
+  const prods=getProducts();
+  const p=prods.find(x=>x.id===id);
+  confirm2(`Delete "${p?.name||'this product'}"? This cannot be undone.`,async ()=>{
+    await fbDeleteProduct(id);
+    toast('Product deleted','danger');
+    // onSnapshot re-renders automatically
+  });
+}
+
+/* ─── TOAST ──────────────────────────────────────────── */
+function toast(msg,type=''){
+  const wrap=document.getElementById('toast-wrap');
+  const el=document.createElement('div');
+  el.className=`toast ${type?'t-'+type:''}`;
+  el.textContent=msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),400);},3000);
+}
+
+/* ─── CONFIRM ─────────────────────────────────────────── */
+let confirmResolve = ()=>{};
+function confirm2(txt, cb){
+  document.getElementById('confirm-txt').textContent=txt;
+  document.getElementById('confirm-overlay').classList.add('open');
+  confirmResolve=(yes)=>{
+    document.getElementById('confirm-overlay').classList.remove('open');
+    if(yes) cb();
+  };
+}
+
+/* ─── SIDEBAR COUNTS ─────────────────────────────────── */
+function updateSidebarCounts(){
+  document.getElementById('sb-prod-count').textContent=_products.length;
+}
+
+/* ─── DRAG UPLOAD AREA ───────────────────────────────── */
+const uploadArea=document.getElementById('upload-area');
+['dragenter','dragover'].forEach(ev=>uploadArea.addEventListener(ev,e=>{e.preventDefault();uploadArea.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>uploadArea.addEventListener(ev,e=>{e.preventDefault();uploadArea.classList.remove('drag');}));
+uploadArea.addEventListener('drop',e=>{
+  const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  const fakeInput={files,value:''};
+  handleImages(fakeInput);
+});
+
+/* ─── MODAL ESC CLOSE ─────────────────────────────────── */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    closeModal();
+    document.getElementById('confirm-overlay').classList.remove('open');
+  }
+});
+document.getElementById('prod-modal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('prod-modal')) closeModal();
+});
+
+/* ─── INIT ────────────────────────────────────────────── */
+// Show skeleton dashboard immediately, Firebase data fills in via onSnapshot
+navigate('dashboard');
+// Seed Firestore if this is first launch
+seedIfEmpty().catch(e=>{ console.error('Seed error:',e); hideSeedingBanner(); });
+</script>
+</body>
+</html>

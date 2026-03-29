@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rival in Retro — Premium Fan Jerseys</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Firebase SDK (compat v9) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+:root {
+  --bg: #070707;
+  --surface: #101010;
+  --card: #141414;
+  --border: #232323;
+  --border-light: #2e2e2e;
+  --gold: #c8a84b;
+  --gold-light: #e2c96a;
+  --gold-dim: rgba(200,168,75,0.15);
+  --text: #f0ede6;
+  --muted: #888;
+  --dim: #444;
+  --wa: #25D366;
+  --wa-dark: #1ebe5d;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; overflow-x:hidden; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border-light); border-radius:3px; }
+
+/* ── NAV ── */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:300;
+  background:rgba(7,7,7,0.96); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 2.5rem; height:68px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.nav-logo {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.7rem; letter-spacing:3px; color:var(--text);
+}
+.nav-logo em { color:var(--gold); font-style:normal; }
+.nav-links { display:flex; gap:2rem; list-style:none; }
+.nav-links a {
+  color:var(--muted); text-decoration:none;
+  font-size:0.78rem; font-weight:500;
+  letter-spacing:1px; text-transform:uppercase;
+  transition:color .2s;
+}
+.nav-links a:hover { color:var(--gold); }
+.nav-wa {
+  display:flex; align-items:center; gap:.5rem;
+  background:var(--wa); color:#fff;
+  padding:.5rem 1.3rem;
+  font-family:'DM Sans',sans-serif;
+  font-size:.78rem; font-weight:700;
+  letter-spacing:.5px; text-transform:uppercase;
+  text-decoration:none; transition:all .2s;
+}
+.nav-wa:hover { background:var(--wa-dark); transform:translateY(-1px); }
+
+/* ── TICKER ── */
+.ticker { background:var(--gold); overflow:hidden; white-space:nowrap; padding:.55rem 0; margin-top:68px; }
+.ticker-inner { display:inline-flex; animation:ticker 28s linear infinite; }
+.ticker-item {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:.88rem; letter-spacing:2px;
+  color:#000; padding:0 2.5rem;
+}
+.ticker-sep { color:rgba(0,0,0,0.35); }
+@keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+/* ── HERO ── */
+.hero {
+  min-height:calc(100vh - 68px);
+  display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden;
+}
+.hero-glow {
+  position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 0%, rgba(200,168,75,.1) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 35% at 85% 85%, rgba(200,168,75,.06) 0%, transparent 55%);
+}
+.hero-grid {
+  position:absolute; inset:0; opacity:.035;
+  background-image:
+    linear-gradient(rgba(240,237,230,.8) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(240,237,230,.8) 1px, transparent 1px);
+  background-size:70px 70px;
+}
+.hero-line-l {
+  position:absolute; left:6%; top:0; bottom:0; width:1px;
+  background:linear-gradient(to bottom, transparent, var(--border), transparent);
+}
+.hero-line-r {
+  position:absolute; right:6%; top:0; bottom:0; width:1px;
+  background:linear-gradient(to bottom, transparent, var(--border), transparent);
+}
+.hero-content {
+  z-index:2; text-align:center;
+  padding:4rem 2rem; max-width:1000px;
+}
+.hero-tag {
+  display:inline-flex; align-items:center; gap:.6rem;
+  border:1px solid var(--gold);
+  color:var(--gold); font-size:.68rem;
+  font-weight:700; letter-spacing:2.5px;
+  text-transform:uppercase; padding:.45rem 1.2rem;
+  margin-bottom:2.5rem;
+}
+.hero-tag::before, .hero-tag::after { content:'◆'; opacity:.6; }
+.hero-title {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(4.5rem,12vw,10rem);
+  letter-spacing:4px; line-height:.92;
+  margin-bottom:2rem;
+}
+.hero-title .g { color:var(--gold); }
+.hero-sub {
+  font-size:1rem; color:var(--muted);
+  max-width:520px; margin:0 auto 3rem;
+  line-height:1.85; font-weight:300;
+}
+.hero-ctas { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+.btn-gold {
+  background:var(--gold); color:#000;
+  padding:.9rem 2.5rem;
+  font-family:'DM Sans',sans-serif;
+  font-size:.82rem; font-weight:800;
+  letter-spacing:1.5px; text-transform:uppercase;
+  border:none; cursor:pointer;
+  text-decoration:none; display:inline-flex; align-items:center; gap:.5rem;
+  transition:all .25s;
+}
+.btn-gold:hover { background:var(--gold-light); transform:translateY(-2px); box-shadow:0 12px 28px rgba(200,168,75,.25); }
+.btn-ghost {
+  background:transparent; color:var(--text);
+  padding:.9rem 2.5rem;
+  font-family:'DM Sans',sans-serif;
+  font-size:.82rem; font-weight:600;
+  letter-spacing:1.5px; text-transform:uppercase;
+  border:1px solid var(--border-light); cursor:pointer;
+  text-decoration:none; display:inline-flex; align-items:center; gap:.5rem;
+  transition:all .25s;
+}
+.btn-ghost:hover { border-color:var(--gold); color:var(--gold); transform:translateY(-2px); }
+
+/* ── STATS ── */
+.stats {
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:2rem;
+  display:flex; justify-content:center;
+  gap:0; flex-wrap:wrap;
+}
+.stat {
+  text-align:center; padding:0 3rem;
+  border-right:1px solid var(--border);
+}
+.stat:last-child { border-right:none; }
+.stat-n { font-family:'Bebas Neue',sans-serif; font-size:2.2rem; color:var(--gold); letter-spacing:1px; }
+.stat-l { font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:.1rem; }
+
+/* ── SECTION UTILS ── */
+.section { padding:5rem 2.5rem; max-width:1440px; margin:0 auto; }
+.section-eyebrow { font-size:.65rem; color:var(--gold); text-transform:uppercase; letter-spacing:3px; margin-bottom:.5rem; }
+.section-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(2.5rem,5vw,4rem); letter-spacing:2px; }
+.section-head { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:3rem; flex-wrap:wrap; gap:1rem; }
+
+/* ── CATEGORY TABS ── */
+.tabs-wrap { padding:0 2.5rem; max-width:1440px; margin:0 auto 0; }
+.tabs { display:flex; gap:.4rem; flex-wrap:wrap; padding:3rem 0 2rem; }
+.tab {
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--muted);
+  padding:.55rem 1.3rem;
+  font-family:'DM Sans',sans-serif;
+  font-size:.75rem; font-weight:600;
+  letter-spacing:.8px; text-transform:uppercase;
+  cursor:pointer; transition:all .2s;
+}
+.tab:hover { border-color:var(--border-light); color:var(--text); }
+.tab.active {
+  background:var(--gold); border-color:var(--gold);
+  color:#000; font-weight:800;
+}
+
+/* ── PRODUCT GRID ── */
+.grid-wrap { padding:0 2.5rem 5rem; max-width:1440px; margin:0 auto; }
+.prod-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(285px,1fr)); gap:1.5rem; }
+
+/* ── PRODUCT CARD ── */
+.prod-card {
+  background:var(--card);
+  border:1px solid var(--border);
+  cursor:pointer; position:relative; overflow:hidden;
+  transition:all .3s ease;
+  display:flex; flex-direction:column;
+}
+.prod-card::after {
+  content:''; position:absolute; inset:0;
+  border:1px solid var(--gold); opacity:0; transition:opacity .3s;
+  pointer-events:none;
+}
+.prod-card:hover::after { opacity:1; }
+.prod-card:hover { transform:translateY(-5px); box-shadow:0 24px 48px rgba(0,0,0,.5); }
+.card-badge {
+  position:absolute; top:14px; left:0; z-index:2;
+  background:var(--gold); color:#000;
+  font-size:.6rem; font-weight:800;
+  letter-spacing:1.5px; text-transform:uppercase;
+  padding:.28rem .8rem;
+}
+.card-img {
+  aspect-ratio:5/4; width:100%;
+  display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden;
+}
+.card-img-overlay {
+  position:absolute; inset:0;
+  background:linear-gradient(to bottom, transparent 60%, rgba(0,0,0,.4));
+}
+.jersey-wrap { position:relative; z-index:1; }
+.card-info { padding:1.3rem 1.3rem .8rem; flex:1; }
+.card-cat {
+  font-size:.62rem; color:var(--gold);
+  text-transform:uppercase; letter-spacing:2.5px; margin-bottom:.4rem;
+}
+.card-name {
+  font-family:'Playfair Display',serif;
+  font-size:1rem; font-weight:700;
+  line-height:1.35; margin-bottom:.9rem;
+}
+.card-pricing { display:flex; align-items:center; gap:.7rem; flex-wrap:wrap; }
+.mrp { font-size:.82rem; color:var(--dim); text-decoration:line-through; }
+.sale { font-size:1.25rem; font-weight:700; }
+.disc {
+  background:var(--gold-dim); color:var(--gold);
+  font-size:.62rem; font-weight:800;
+  letter-spacing:.5px; padding:.15rem .45rem;
+}
+.card-actions { display:flex; gap:.5rem; padding:.8rem 1.3rem 1.3rem; }
+.btn-wa-card {
+  flex:1; background:var(--wa); color:#fff;
+  border:none; padding:.72rem .5rem;
+  font-family:'DM Sans',sans-serif;
+  font-size:.75rem; font-weight:700;
+  letter-spacing:.5px; text-transform:uppercase;
+  cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; justify-content:center; gap:.35rem;
+}
+.btn-wa-card:hover { background:var(--wa-dark); }
+.btn-view {
+  background:var(--surface); color:var(--muted);
+  border:1px solid var(--border); padding:.72rem 1rem;
+  font-size:.78rem; cursor:pointer; transition:all .2s;
+  display:flex; align-items:center;
+}
+.btn-view:hover { border-color:var(--gold); color:var(--gold); }
+
+/* ── FEATURES ── */
+.features-bg { background:var(--surface); border-top:1px solid var(--border); }
+.features-grid {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  border:1px solid var(--border);
+  background:var(--border); gap:1px;
+}
+.feat {
+  background:var(--card);
+  padding:2.5rem 2rem; text-align:center;
+  transition:background .3s;
+}
+.feat:hover { background:#1a1a1a; }
+.feat-icon { font-size:1.8rem; margin-bottom:1.2rem; }
+.feat-title {
+  font-family:'Playfair Display',serif;
+  font-size:1.05rem; margin-bottom:.5rem;
+}
+.feat-text { font-size:.82rem; color:var(--muted); line-height:1.7; }
+
+/* ── MODAL ── */
+.overlay {
+  position:fixed; inset:0; z-index:400;
+  background:rgba(0,0,0,.88); backdrop-filter:blur(10px);
+  display:flex; align-items:center; justify-content:center;
+  padding:1rem; opacity:0; pointer-events:none; transition:opacity .3s;
+}
+.overlay.open { opacity:1; pointer-events:all; }
+.modal {
+  background:var(--card);
+  border:1px solid var(--border-light);
+  max-width:720px; width:100%;
+  max-height:92vh; overflow-y:auto;
+  transform:translateY(24px) scale(.98);
+  transition:transform .35s cubic-bezier(.25,.8,.25,1);
+}
+.overlay.open .modal { transform:translateY(0) scale(1); }
+.modal-top {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1.4rem 1.8rem;
+  border-bottom:1px solid var(--border);
+}
+.modal-top-title { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:1px; }
+.modal-top-sub { font-size:.62rem; color:var(--gold); letter-spacing:2px; text-transform:uppercase; }
+.close-btn {
+  background:none; border:1px solid var(--border);
+  color:var(--muted); width:32px; height:32px;
+  font-size:1.1rem; cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; justify-content:center;
+}
+.close-btn:hover { border-color:var(--text); color:var(--text); }
+.modal-body { display:grid; grid-template-columns:1fr 1.1fr; }
+.modal-vis {
+  display:flex; align-items:center; justify-content:center;
+  padding:3rem; background:var(--surface);
+  border-right:1px solid var(--border);
+}
+.modal-info { padding:2rem 1.8rem; }
+.m-cat { font-size:.62rem; color:var(--gold); text-transform:uppercase; letter-spacing:2px; margin-bottom:.5rem; }
+.m-name {
+  font-family:'Playfair Display',serif;
+  font-size:1.4rem; font-weight:700;
+  line-height:1.3; margin-bottom:1.2rem;
+}
+.m-pricing { display:flex; align-items:baseline; gap:1rem; margin-bottom:.35rem; }
+.m-mrp { font-size:.9rem; color:var(--dim); text-decoration:line-through; }
+.m-sale { font-size:2rem; font-weight:700; }
+.m-save { font-size:.8rem; color:var(--gold); margin-bottom:1.8rem; }
+.m-label { font-size:.65rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:.6rem; }
+.size-row { display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1.6rem; }
+.sz {
+  min-width:46px; height:46px; px:.5rem;
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text); font-family:'DM Sans',sans-serif;
+  font-size:.8rem; font-weight:600;
+  cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; justify-content:center;
+}
+.sz:hover, .sz.on { background:var(--gold); border-color:var(--gold); color:#000; }
+.qty-row { display:flex; align-items:center; margin-bottom:1.6rem; }
+.qb {
+  width:42px; height:42px;
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text); font-size:1.25rem;
+  cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; justify-content:center;
+}
+.qb:hover { background:var(--gold); border-color:var(--gold); color:#000; }
+.qval {
+  width:54px; height:42px;
+  background:var(--card);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700;
+}
+.m-total {
+  background:var(--surface); border:1px solid var(--border);
+  padding:1rem 1.2rem;
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:.8rem;
+}
+.m-total-l { font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+.m-total-p { font-size:1.5rem; font-weight:700; color:var(--gold); }
+.btn-wa-modal {
+  width:100%; background:var(--wa); color:#fff;
+  border:none; padding:1.05rem;
+  font-family:'DM Sans',sans-serif;
+  font-size:.88rem; font-weight:800;
+  letter-spacing:1px; text-transform:uppercase;
+  cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; justify-content:center; gap:.6rem;
+}
+.btn-wa-modal:hover { background:var(--wa-dark); }
+.m-note {
+  font-size:.68rem; color:var(--dim); text-align:center;
+  margin-top:.75rem; line-height:1.6;
+}
+
+/* ── FOOTER ── */
+footer {
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  padding:4rem 2.5rem 2rem;
+}
+.foot-inner {
+  max-width:1440px; margin:0 auto;
+  display:grid; grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:3rem; padding-bottom:3rem;
+  border-bottom:1px solid var(--border);
+}
+.foot-logo { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:2px; margin-bottom:1rem; }
+.foot-logo em { color:var(--gold); font-style:normal; }
+.foot-desc { font-size:.83rem; color:var(--muted); line-height:1.75; max-width:280px; }
+.foot-h { font-size:.62rem; color:var(--gold); text-transform:uppercase; letter-spacing:2.5px; margin-bottom:1rem; }
+.foot-ul { list-style:none; }
+.foot-ul li { margin-bottom:.45rem; }
+.foot-ul a { color:var(--muted); text-decoration:none; font-size:.83rem; transition:color .2s; }
+.foot-ul a:hover { color:var(--text); }
+.foot-bottom {
+  max-width:1440px; margin:0 auto;
+  display:flex; justify-content:space-between; align-items:center;
+  padding-top:1.5rem; flex-wrap:wrap; gap:.5rem;
+}
+.foot-copy { font-size:.75rem; color:var(--dim); }
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .nav-links { display:none; }
+  .stat { padding:1rem 1.5rem; }
+  .features-grid { grid-template-columns:repeat(2,1fr); }
+  .foot-inner { grid-template-columns:1fr 1fr; }
+  .modal-body { grid-template-columns:1fr; }
+  .modal-vis { border-right:none; border-bottom:1px solid var(--border); padding:2rem; }
+}
+@media(max-width:600px){
+  nav { padding:0 1.2rem; }
+  .hero-title { font-size:clamp(3.5rem,14vw,5.5rem); }
+  .stats { gap:1rem; }
+  .stat { border-right:none; border-bottom:1px solid var(--border); padding:1rem 0; width:50%; }
+  .features-grid { grid-template-columns:1fr; }
+  .foot-inner { grid-template-columns:1fr; }
+  .foot-bottom { flex-direction:column; text-align:center; }
+  .grid-wrap { padding:0 1.2rem 4rem; }
+  .tabs-wrap { padding:0 1.2rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">RIVAL <em>IN</em> RETRO</div>
+  <ul class="nav-links">
+    <li><a href="#shop">Shop</a></li>
+    <li><a href="#shop" onclick="setTab('world-cup')">World Cup 2026</a></li>
+    <li><a href="#shop" onclick="setTab('ipl')">IPL 2026</a></li>
+    <li><a href="#shop" onclick="setTab('retro')">Retro</a></li>
+  </ul>
+  <a href="https://wa.me/919999999999" data-wa target="_blank" class="nav-wa">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    Order on WhatsApp
+  </a>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="tickerInner">
+    <span class="ticker-item">⚽ WORLD CUP 2026 JERSEYS NOW AVAILABLE</span>
+    <span class="ticker-item ticker-sep">◆</span>
+    <span class="ticker-item">🏏 IPL 2026 SEASON COLLECTION IS LIVE</span>
+    <span class="ticker-item ticker-sep">◆</span>
+    <span class="ticker-item">🕰 RETRO CLASSICS — LIMITED STOCK ONLY</span>
+    <span class="ticker-item ticker-sep">◆</span>
+    <span class="ticker-item">✈ FREE SHIPPING ACROSS INDIA</span>
+    <span class="ticker-item ticker-sep">◆</span>
+    <span class="ticker-item">💬 ORDER DIRECTLY ON WHATSAPP — FAST & SIMPLE</span>
+    <span class="ticker-item ticker-sep">◆</span>
+    <span class="ticker-item">⚽ WORLD CUP 2026 JERSEYS NOW AVAILABLE</span>
+    <span class="ticker-item ticker-sep">◆</span>
+    <span class="ticker-item">🏏 IPL 2026 SEASON COLLECTION IS LIVE</span>
+    <span class="ticker-item ticker-sep">◆</span>
+    <span class="ticker-item">🕰 RETRO CLASSICS — LIMITED STOCK ONLY</span>
+    <span class="ticker-item ticker-sep">◆</span>
+    <span class="ticker-item">✈ FREE SHIPPING ACROSS INDIA</span>
+    <span class="ticker-item ticker-sep">◆</span>
+    <span class="ticker-item">💬 ORDER DIRECTLY ON WHATSAPP — FAST & SIMPLE</span>
+    <span class="ticker-item ticker-sep">◆</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-line-l"></div>
+  <div class="hero-line-r"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Premium Fan Edition Jerseys</div>
+    <h1 class="hero-title">
+      WEAR THE<br><span class="g">LEGEND.</span><br>OWN THE GAME.
+    </h1>
+    <p class="hero-sub">
+      Football clubs. International sides. Retro masterpieces. World Cup 2026 & IPL 2026. 
+      Every jersey made for the real fan — not the casual one.
+    </p>
+    <div class="hero-ctas">
+      <a href="#shop" class="btn-gold">Shop All Jerseys →</a>
+      <a href="https://wa.me/919999999999" data-wa target="_blank" class="btn-ghost">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Chat on WhatsApp
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-n">600+</div><div class="stat-l">Jerseys Delivered</div></div>
+  <div class="stat"><div class="stat-n">35+</div><div class="stat-l">Teams Available</div></div>
+  <div class="stat"><div class="stat-n">6</div><div class="stat-l">Collections</div></div>
+  <div class="stat"><div class="stat-n">4.9 ★</div><div class="stat-l">Customer Rating</div></div>
+</div>
+
+<!-- SHOP -->
+<div id="shop">
+  <div class="tabs-wrap">
+    <div style="padding-top:1rem">
+      <div class="section-eyebrow">Browse Collections</div>
+      <div class="section-title">ALL JERSEYS</div>
+    </div>
+    <div class="tabs" id="tabsRow">
+      <button class="tab active" data-cat="all">All Jerseys</button>
+      <button class="tab" data-cat="football-club">⚽ Football Clubs</button>
+      <button class="tab" data-cat="intl-football">🌍 International Football</button>
+      <button class="tab" data-cat="world-cup">🏆 World Cup 2026</button>
+      <button class="tab" data-cat="ipl">🏏 IPL 2026</button>
+      <button class="tab" data-cat="cricket">🌏 International Cricket</button>
+      <button class="tab" data-cat="retro">🕰 Retro Collection</button>
+    </div>
+  </div>
+  <div class="grid-wrap">
+    <div class="prod-grid" id="prodGrid"></div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="features-bg">
+  <div style="max-width:1440px;margin:0 auto;padding:5rem 2.5rem">
+    <div style="text-align:center;margin-bottom:3rem">
+      <div class="section-eyebrow">Why Choose Us</div>
+      <div class="section-title">THE RIVAL PROMISE</div>
+    </div>
+    <div class="features-grid">
+      <div class="feat"><div class="feat-icon">🧵</div><div class="feat-title">Premium Quality</div><div class="feat-text">Fan-edition grade — breathable, durable, and built to last through every match day.</div></div>
+      <div class="feat"><div class="feat-icon">⚡</div><div class="feat-title">Fast Dispatch</div><div class="feat-text">Orders dispatched within 24–48 hours pan-India. No waiting, no delays.</div></div>
+      <div class="feat"><div class="feat-icon">💬</div><div class="feat-title">WhatsApp Ordering</div><div class="feat-text">No complex checkouts. Order directly on WhatsApp — personal, fast, and human.</div></div>
+      <div class="feat"><div class="feat-icon">↩️</div><div class="feat-title">7-Day Returns</div><div class="feat-text">Not satisfied? We'll sort it out. No-questions-asked returns within 7 days.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-inner">
+    <div>
+      <div class="foot-logo">RIVAL <em>IN</em> RETRO</div>
+      <p class="foot-desc">Premium fan-edition football and cricket jerseys. We carry the clubs, the national sides, and the legends — delivered straight to your door across India.</p>
+    </div>
+    <div>
+      <div class="foot-h">Football</div>
+      <ul class="foot-ul">
+        <li><a href="#" onclick="setTabAndGo('football-club')">Football Clubs</a></li>
+        <li><a href="#" onclick="setTabAndGo('intl-football')">International Teams</a></li>
+        <li><a href="#" onclick="setTabAndGo('world-cup')">World Cup 2026</a></li>
+        <li><a href="#" onclick="setTabAndGo('retro')">Retro Classics</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="foot-h">Cricket</div>
+      <ul class="foot-ul">
+        <li><a href="#" onclick="setTabAndGo('ipl')">IPL 2026</a></li>
+        <li><a href="#" onclick="setTabAndGo('cricket')">International Cricket</a></li>
+        <li><a href="#" onclick="setTabAndGo('retro')">Retro Cricket</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="foot-h">Connect</div>
+      <ul class="foot-ul">
+        <li><a href="https://wa.me/919999999999" data-wa target="_blank">WhatsApp Us</a></li>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">Shipping Policy</a></li>
+        <li><a href="#">Return Policy</a></li>
+        <li><a href="#">Size Guide</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span class="foot-copy">© 2026 Rival in Retro. All rights reserved.</span>
+    <span class="foot-copy" style="color:var(--gold)">Made for fans. By fans.</span>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeOverlay(event)">
+  <div class="modal" id="modal">
+    <div class="modal-top">
+      <div>
+        <div class="modal-top-sub" id="mTopSub"></div>
+        <div class="modal-top-title">SELECT SIZE & ORDER</div>
+      </div>
+      <button class="close-btn" onclick="document.getElementById('overlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-vis" id="mVis"></div>
+      <div class="modal-info">
+        <div class="m-cat" id="mCat"></div>
+        <div class="m-name" id="mName"></div>
+        <div class="m-pricing">
+          <span class="m-mrp" id="mMrp"></span>
+          <span class="m-sale" id="mSale"></span>
+        </div>
+        <div class="m-save" id="mSave"></div>
+        <div class="m-label">Choose Size</div>
+        <div class="size-row" id="sizeRow"></div>
+        <div class="m-label">Quantity</div>
+        <div class="qty-row">
+          <button class="qb" onclick="chQty(-1)">−</button>
+          <div class="qval" id="qVal">1</div>
+          <button class="qb" onclick="chQty(1)">+</button>
+        </div>
+        <div class="m-total">
+          <span class="m-total-l">Total Amount</span>
+          <span class="m-total-p" id="mTotal">₹0</span>
+        </div>
+        <button class="btn-wa-modal" onclick="sendWA()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Confirm Order via WhatsApp
+        </button>
+        <div class="m-note">You'll be redirected to WhatsApp with your order pre-filled.<br>We respond within minutes during working hours.</div>
+        <!-- Product description (from admin) -->
+        <div id="mDesc" style="display:none;margin-top:.9rem;font-size:.78rem;color:var(--muted);line-height:1.7;border-top:1px solid var(--border);padding-top:.9rem"></div>
+      </div>
+    </div>
+    <!-- Image thumbnail strip (shown when product has multiple images) -->
+    <div id="mThumbs" style="display:none;gap:.4rem;padding:.8rem 1.8rem 1.2rem;border-top:1px solid var(--border);flex-wrap:wrap"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// FIREBASE CONFIG — REPLACE WITH YOUR OWN (same as admin panel)
+// ══════════════════════════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCVHYTIRY-hBh2XHRYkuy4ShLeT3-rByi8",
+  authDomain: "rivalinretro-8a562.firebaseapp.com",
+  projectId: "rivalinretro-8a562",
+  storageBucket: "rivalinretro-8a562.firebasestorage.app",
+  messagingSenderId: "200802063722",
+  appId: "1:200802063722:web:aea58b7801613814d08113"
+};
+
+// ── FIREBASE INIT ─────────────────────────────────────────────────
+firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.firestore();
+const PROD_COL      = db.collection('products');
+const SETTINGS_DOC  = db.collection('settings').doc('main');
+
+// ── LIVE DATA STORE ───────────────────────────────────────────────
+let PRODUCTS = [];   // populated by onSnapshot — no hardcoding
+let WA       = '919999999999'; // overwritten by settings listener
+let _activeTab = 'all';
+let _currentView = 'grid'; // 'grid' only for now
+
+// ── CATEGORY META (colours + labels for SVG fallback) ─────────────
+const CAT_META = {
+  'football-club': { label:'Football Club',           c:['#1c3f6e','#e8c84a'], stripes:false },
+  'intl-football':  { label:'International Football',  c:['#002395','#ED2939'], stripes:false },
+  'world-cup':      { label:'World Cup 2026',          c:['#c8a84b','#1a1a1a'], stripes:false },
+  'ipl':            { label:'IPL 2026',                c:['#004BA0','#D1AB3E'], stripes:false },
+  'cricket':        { label:'International Cricket',   c:['#003087','#FF671F'], stripes:false },
+  'retro':          { label:'Retro Collection',        c:['#8B1A1A','#D4AF37'], stripes:false },
+};
+
+// Enrich a Firestore product with display fields derived from its category
+function enrich(p) {
+  const m = CAT_META[p.cat] || { label: p.cat, c:['#222','#c8a84b'], stripes:false };
+  return {
+    ...p,
+    label:   p.label  || m.label,
+    c:       p.c      || m.c,
+    stripes: p.stripes ?? m.stripes,
+  };
+}
+
+// ── FIREBASE: REAL-TIME PRODUCT LISTENER ──────────────────────────
+PROD_COL.orderBy('priority').onSnapshot(snap => {
+  PRODUCTS = snap.docs
+    .map(d => enrich({ id: d.id, ...d.data() }))
+    .filter(p => p.status === 'active');   // only show active products
+  renderGrid(_activeTab);
+}, err => {
+  console.error('Products listener error:', err);
+  showLoadError();
+});
+
+// ── FIREBASE: SETTINGS LISTENER (WA number + brand name) ──────────
+SETTINGS_DOC.onSnapshot(snap => {
+  if (!snap.exists) return;
+  const s = snap.data();
+  if (s.wa) {
+    WA = s.wa;
+    // Update all static WA links in the page
+    document.querySelectorAll('a[data-wa]').forEach(a => {
+      a.href = `https://wa.me/${WA}`;
+    });
+  }
+  if (s.brand) {
+    // Update brand name in WA message template if needed
+    window._brand = s.brand;
+  }
+}, err => console.error('Settings listener error:', err));
+
+// ── LOADING STATE ─────────────────────────────────────────────────
+function showLoadingGrid() {
+  const skeletons = Array(8).fill(0).map(()=>`
+    <div class="prod-card" style="pointer-events:none">
+      <div class="card-img" style="background:var(--surface)">
+        <div style="width:100%;height:100%;background:linear-gradient(90deg,#1a1a1a 25%,#222 50%,#1a1a1a 75%);background-size:400% 100%;animation:shimmer 1.4s infinite"></div>
+      </div>
+      <div class="card-info">
+        <div style="height:10px;width:40%;background:#1e1e1e;margin-bottom:.6rem"></div>
+        <div style="height:14px;width:85%;background:#1e1e1e;margin-bottom:.4rem"></div>
+        <div style="height:14px;width:60%;background:#1e1e1e"></div>
+      </div>
+    </div>`).join('');
+  document.getElementById('prodGrid').innerHTML = skeletons;
+}
+
+function showLoadError() {
+  document.getElementById('prodGrid').innerHTML = `
+    <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;border:1px dashed #333">
+      <div style="font-size:2rem;margin-bottom:1rem">⚠️</div>
+      <div style="color:#e05252;font-weight:700;margin-bottom:.5rem">Could not load products</div>
+      <div style="color:#666;font-size:.82rem">Check your Firebase config in the HTML file.</div>
+    </div>`;
+}
+
+// ── JERSEY SVG (fallback when no product image) ───────────────────
+let _sid = 0;
+function jerseyArt(c1, c2, stripes, scale=1) {
+  const id = 'p'+(++_sid);
+  const W=120, H=130;
+  const pat = stripes ? `<defs><pattern id="${id}" x="0" y="0" width="10" height="200" patternUnits="userSpaceOnUse"><rect width="5" height="200" fill="${c1}"/><rect x="5" width="5" height="200" fill="${c2}"/></pattern></defs>` : '';
+  const bodyFill = stripes ? `url(#${id})` : c1;
+  return `<svg viewBox="0 0 120 130" width="${W*scale}" height="${H*scale}" xmlns="http://www.w3.org/2000/svg">
+    ${pat}
+    <path d="M4,34 L20,18 L39,31 L28,57 Z" fill="${c2}"/>
+    <path d="M116,34 L100,18 L81,31 L92,57 Z" fill="${c2}"/>
+    <path d="M28,29 Q60,17 92,29 L100,118 Q60,126 20,118 Z" fill="${bodyFill}"/>
+    <path d="M45,27 Q60,20 75,27 Q71,40 60,43 Q49,40 45,27 Z" fill="${c2}" opacity=".9"/>
+    <line x1="28" y1="29" x2="39" y2="31" stroke="${c2}" stroke-width="1.5" opacity=".5"/>
+    <line x1="92" y1="29" x2="81" y2="31" stroke="${c2}" stroke-width="1.5" opacity=".5"/>
+    <circle cx="44" cy="58" r="5.5" fill="${c2}" opacity=".22"/>
+    <circle cx="44" cy="58" r="2" fill="${c2}" opacity=".5"/>
+  </svg>`;
+}
+
+// ── CARD VISUAL: image if available, SVG otherwise ────────────────
+function cardVisual(p) {
+  const img = p.images && p.images[0];
+  if (img) {
+    return `<img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;display:block">`;
+  }
+  return `<div class="jersey-wrap">${jerseyArt(p.c[0], p.c[1], p.stripes)}</div>`;
+}
+
+function modalVisual(p) {
+  const img = p.images && p.images[0];
+  if (img) {
+    return `<img src="${img}" alt="${p.name}" style="max-width:220px;max-height:220px;object-fit:contain;border-radius:2px">`;
+  }
+  return `<div style="transform:scale(1.5)">${jerseyArt(p.c[0], p.c[1], p.stripes)}</div>`;
+}
+
+// ── RENDER GRID ───────────────────────────────────────────────────
+function renderGrid(cat='all') {
+  _activeTab = cat;
+
+  if (!PRODUCTS.length) { showLoadingGrid(); return; }
+
+  let items;
+  if (cat === 'all') {
+    items = PRODUCTS;
+  } else {
+    // Category tabs: filter by cat field
+    // Section-aware tabs: also check sections[] for special mappings
+    const sectionMap = {
+      'world-cup': 'world-cup-section',
+      'ipl':       'ipl-section',
+      'retro':     'retro-section',
+    };
+    if (sectionMap[cat]) {
+      // Show products in this category OR explicitly assigned to this section
+      items = PRODUCTS.filter(p =>
+        p.cat === cat ||
+        (p.sections && p.sections.includes(sectionMap[cat]))
+      );
+    } else {
+      items = PRODUCTS.filter(p => p.cat === cat);
+    }
+  }
+
+  if (!items.length) {
+    document.getElementById('prodGrid').innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:4rem;color:#555;font-size:.9rem">
+        No jerseys in this collection yet — check back soon.
+      </div>`;
+    return;
+  }
+
+  const WA_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`;
+
+  document.getElementById('prodGrid').innerHTML = items.map(p => {
+    const disc    = Math.round((1 - p.price / p.mrp) * 100);
+    const hasImg  = p.images && p.images[0];
+    const bgGrad  = `linear-gradient(135deg,${p.c[0]}22 0%,${p.c[1]}18 100%)`;
+    return `<div class="prod-card" onclick="openModal('${p.id}')">
+      ${p.badge ? `<div class="card-badge">${p.badge}</div>` : ''}
+      <div class="card-img" style="background:${hasImg ? '#0d0d0d' : bgGrad}">
+        <div class="card-img-overlay"></div>
+        ${cardVisual(p)}
+      </div>
+      <div class="card-info">
+        <div class="card-cat">${p.label}</div>
+        <div class="card-name">${p.name}</div>
+        <div class="card-pricing">
+          <span class="mrp">MRP ₹${p.mrp.toLocaleString('en-IN')}</span>
+          <span class="sale">₹${p.price.toLocaleString('en-IN')}</span>
+          <span class="disc">${disc}% OFF</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-wa-card" onclick="event.stopPropagation();openModal('${p.id}')">
+          ${WA_SVG} Order Now
+        </button>
+        <button class="btn-view" onclick="event.stopPropagation();openModal('${p.id}')" title="Quick View">↗</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── TABS ─────────────────────────────────────────────────────────
+document.getElementById('tabsRow').addEventListener('click', e => {
+  const btn = e.target.closest('.tab');
+  if (!btn) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid(btn.dataset.cat);
+});
+
+function setTab(cat) {
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.cat === cat);
+  });
+  renderGrid(cat);
+}
+
+function setTabAndGo(cat) {
+  setTab(cat);
+  document.getElementById('shop').scrollIntoView({ behavior:'smooth' });
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────
+let cur = null, qty = 1, size = null;
+
+function openModal(id) {
+  cur = PRODUCTS.find(p => p.id === id);
+  if (!cur) return;
+  qty = 1; size = null;
+
+  const save = cur.mrp - cur.price;
+  const disc = Math.round(save / cur.mrp * 100);
+
+  document.getElementById('mTopSub').textContent  = cur.label;
+  document.getElementById('mCat').textContent     = cur.label;
+  document.getElementById('mName').textContent    = cur.name;
+  document.getElementById('mMrp').textContent     = `MRP ₹${cur.mrp.toLocaleString('en-IN')}`;
+  document.getElementById('mSale').textContent    = `₹${cur.price.toLocaleString('en-IN')}`;
+  document.getElementById('mSave').textContent    = `You save ₹${save.toLocaleString('en-IN')} — ${disc}% off`;
+
+  // Visual: real product image or SVG art
+  const mVis = document.getElementById('mVis');
+  mVis.innerHTML = modalVisual(cur);
+  mVis.style.background = (cur.images && cur.images[0])
+    ? '#0d0d0d'
+    : `linear-gradient(135deg,${cur.c[0]}22,${cur.c[1]}18)`;
+
+  document.getElementById('qVal').textContent = 1;
+  updateTotal();
+
+  // Size buttons — only sizes the admin marked as available
+  const availSizes = cur.sizes && cur.sizes.length
+    ? cur.sizes
+    : ['S','M','L','XL'];
+  document.getElementById('sizeRow').innerHTML = availSizes.map(s =>
+    `<button class="sz" onclick="pickSize('${s}',this)">${s}</button>`
+  ).join('');
+
+  // Description row (if admin entered one)
+  const descEl = document.getElementById('mDesc');
+  if (descEl) {
+    descEl.textContent = cur.desc || '';
+    descEl.style.display = cur.desc ? 'block' : 'none';
+  }
+
+  // Thumbnail strip for multiple images
+  const thumbsEl = document.getElementById('mThumbs');
+  if (thumbsEl) {
+    if (cur.images && cur.images.length > 1) {
+      thumbsEl.innerHTML = cur.images.map((img, i) =>
+        `<div onclick="swapModalImg('${img}')" style="width:48px;height:48px;border:1px solid ${i===0?'#c8a84b':'#252525'};overflow:hidden;cursor:pointer;flex-shrink:0">
+          <img src="${img}" style="width:100%;height:100%;object-fit:cover">
+        </div>`
+      ).join('');
+      thumbsEl.style.display = 'flex';
+    } else {
+      thumbsEl.style.display = 'none';
+    }
+  }
+
+  document.getElementById('overlay').classList.add('open');
+}
+
+function swapModalImg(src) {
+  const mVis = document.getElementById('mVis');
+  const existing = mVis.querySelector('img');
+  if (existing) existing.src = src;
+}
+
+function closeOverlay(e) {
+  if (e.target === document.getElementById('overlay'))
+    document.getElementById('overlay').classList.remove('open');
+}
+
+function pickSize(s, el) {
+  document.querySelectorAll('.sz').forEach(b => b.classList.remove('on'));
+  el.classList.add('on'); size = s;
+}
+
+function chQty(d) {
+  qty = Math.max(1, Math.min(10, qty + d));
+  document.getElementById('qVal').textContent = qty;
+  updateTotal();
+}
+
+function updateTotal() {
+  if (!cur) return;
+  document.getElementById('mTotal').textContent = '₹' + (cur.price * qty).toLocaleString('en-IN');
+}
+
+// ── WHATSAPP ORDER ────────────────────────────────────────────────
+function sendWA() {
+  if (!size) { alert('Please select a size to continue.'); return; }
+  const total = cur.price * qty;
+  const brand = window._brand || 'Rival in Retro';
+  const msg =
+`Hello ${brand}! 👋
+
+I would like to place an order:
+
+🛒 *ORDER DETAILS*
+━━━━━━━━━━━━━━━━━━━━
+📌 Jersey: *${cur.name}*
+🏷 Category: ${cur.label}
+📏 Size: *${size}*
+🔢 Quantity: *${qty}*
+💰 Price per Jersey: ₹${cur.price.toLocaleString('en-IN')}
+💳 *Order Total: ₹${total.toLocaleString('en-IN')}*
+━━━━━━━━━━━━━━━━━━━━
+
+Please confirm availability and share payment details. Thank you!`;
+
+  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ── SHIMMER ANIMATION (for loading skeletons) ─────────────────────
+const shimmerCSS = document.createElement('style');
+shimmerCSS.textContent = `@keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}`;
+document.head.appendChild(shimmerCSS);
+
+// ── INIT ─────────────────────────────────────────────────────────
+showLoadingGrid(); // Show skeletons immediately; onSnapshot fills real data
+
+// Keyboard ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('overlay').classList.remove('open');
+});
+</script>
+</body>
+</html>
