@@ -574,9 +574,144 @@ tr:last-child td{border-bottom:none;}
   .stat-grid{grid-template-columns:1fr 1fr;}
   .form-row-3{grid-template-columns:1fr;}
 }
+
+/* ═══════════════════════════════════════════
+   PASSWORD GATE
+═══════════════════════════════════════════ */
+#auth-wall{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;
+}
+#auth-wall.hidden{display:none;}
+.auth-box{
+  width:100%;max-width:380px;
+  padding:0 1.5rem;
+  display:flex;flex-direction:column;align-items:center;
+  gap:0;
+}
+.auth-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2rem;letter-spacing:4px;
+  margin-bottom:.3rem;text-align:center;
+}
+.auth-logo em{color:var(--gold);font-style:normal;}
+.auth-sub{
+  font-size:.62rem;color:var(--dim);
+  letter-spacing:2.5px;text-transform:uppercase;
+  margin-bottom:2.5rem;
+}
+.auth-label{
+  font-size:.6rem;color:var(--muted);
+  text-transform:uppercase;letter-spacing:2px;
+  align-self:flex-start;margin-bottom:.5rem;font-weight:600;
+}
+.auth-input-wrap{
+  width:100%;position:relative;margin-bottom:.75rem;
+}
+.auth-input{
+  width:100%;background:var(--s1);
+  border:1px solid var(--border2);
+  color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:1rem;padding:.85rem 3rem .85rem 1rem;
+  outline:none;transition:border-color .2s;
+  letter-spacing:.1em;
+}
+.auth-input:focus{border-color:var(--gold);}
+.auth-eye{
+  position:absolute;right:.9rem;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:var(--dim);
+  cursor:pointer;font-size:.85rem;padding:.2rem;
+  transition:color .15s;
+}
+.auth-eye:hover{color:var(--muted);}
+.auth-btn{
+  width:100%;background:var(--gold);color:#000;
+  border:none;padding:.9rem;
+  font-family:'DM Sans',sans-serif;
+  font-size:.82rem;font-weight:800;
+  letter-spacing:1.5px;text-transform:uppercase;
+  cursor:pointer;transition:all .2s;
+  margin-bottom:.8rem;
+}
+.auth-btn:hover{background:var(--gold2);}
+.auth-btn:active{transform:scale(.99);}
+.auth-error{
+  font-size:.75rem;color:var(--danger);
+  text-align:center;height:1.1rem;
+  transition:opacity .2s;opacity:0;
+}
+.auth-error.show{opacity:1;}
+.auth-divider{
+  width:100%;border:none;
+  border-top:1px solid var(--border);
+  margin:1.5rem 0;
+}
+.auth-hint{
+  font-size:.65rem;color:var(--dim);
+  text-align:center;line-height:1.7;
+}
+/* Shake animation on wrong password */
+@keyframes auth-shake{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-8px);}
+  40%{transform:translateX(8px);}
+  60%{transform:translateX(-6px);}
+  80%{transform:translateX(6px);}
+}
+.auth-shake{animation:auth-shake .4s ease;}
+/* Grid background decoration */
+.auth-grid{
+  position:fixed;inset:0;pointer-events:none;opacity:.03;
+  background-image:
+    linear-gradient(rgba(240,237,230,.8) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(240,237,230,.8) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.auth-glow{
+  position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(200,168,75,.05) 0%,transparent 70%);
+}
 </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════════
+     PASSWORD GATE — shown before anything else
+══════════════════════════════════════════ -->
+<div id="auth-wall">
+  <div class="auth-grid"></div>
+  <div class="auth-glow"></div>
+  <div class="auth-box">
+    <div class="auth-logo">RIVAL <em>IN</em> RETRO</div>
+    <div class="auth-sub">Admin Access Only</div>
+
+    <div class="auth-label">Password</div>
+    <div class="auth-input-wrap" id="auth-input-wrap">
+      <input
+        class="auth-input"
+        type="password"
+        id="auth-pwd"
+        placeholder="Enter admin password"
+        autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')authSubmit()"
+      >
+      <button class="auth-eye" onclick="authToggleEye()" id="auth-eye-btn" title="Show/hide">👁</button>
+    </div>
+    <div class="auth-error" id="auth-error">Incorrect password. Please try again.</div>
+
+    <button class="auth-btn" onclick="authSubmit()">
+      Unlock Admin Panel →
+    </button>
+
+    <hr class="auth-divider">
+    <div class="auth-hint">
+      This panel is private.<br>
+      Only authorised users can access store settings.
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════
      SHELL
@@ -616,7 +751,10 @@ tr:last-child td{border-bottom:none;}
     </nav>
 
     <div class="sb-footer">
-      <div class="sb-footer-text">v1.0 · Rival in Retro</div>
+      <div class="sb-footer-text" style="margin-bottom:.6rem">v1.0 · Rival in Retro</div>
+      <button onclick="authLogout()" style="background:none;border:1px solid var(--border);color:var(--dim);font-family:'DM Sans',sans-serif;font-size:.68rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:.4rem .8rem;cursor:pointer;width:100%;transition:all .2s;" onmouseover="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--dim)'">
+        🔒 Lock Admin
+      </button>
     </div>
   </aside>
 
@@ -835,6 +973,88 @@ const SEED_PRODUCTS = [
   {id:'p34',name:'Manchester United 1999 Treble Season Retro',cat:'retro',mrp:2999,price:1599,sizes:['S','M','L','XL'],qty:22,badge:'★ Classic',desc:'Man United treble-winning 1999 season retro kit.',status:'active',images:[],sections:['shop','retro-section'],priority:4},
   {id:'p35',name:'France 1998 World Cup Winners Retro Jersey',cat:'retro',mrp:2999,price:1599,sizes:['M','L','XL'],qty:18,badge:'★ Legend',desc:'France 1998 World Cup winning retro jersey.',status:'active',images:[],sections:['shop','retro-section'],priority:5},
 ];
+
+/* ═══════════════════════════════════════════════════════════════
+   PASSWORD GATE
+   ─────────────────────────────────────────────────────────────
+   HOW TO CHANGE YOUR PASSWORD:
+   1. Go to: https://emn178.github.io/online-tools/sha256.html
+   2. Type your new password → copy the SHA-256 hash
+   3. Replace the value of AUTH_HASH below with your new hash
+   4. Save the file
+   ─────────────────────────────────────────────────────────────
+   DEFAULT PASSWORD: admin@123
+   (change it immediately after first login!)
+═══════════════════════════════════════════════════════════════ */
+const AUTH_HASH = '41aecc5054c70fd913d9ffa1acdc137598dff5c728f00581db7815e4d76338df';
+// ↑ This is SHA-256 of "admin@123" — replace with your own hash
+
+const SESSION_KEY = 'rir_admin_auth';
+
+/* Hash a string using the browser's built-in SubtleCrypto API */
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* Check if already authenticated in this session */
+function authCheck(){
+  if(sessionStorage.getItem(SESSION_KEY)==='1'){
+    document.getElementById('auth-wall').classList.add('hidden');
+    return true;
+  }
+  // Hide the main shell until authenticated
+  document.getElementById('shell').style.visibility='hidden';
+  document.getElementById('auth-pwd').focus();
+  return false;
+}
+
+/* Called when user clicks Unlock or presses Enter */
+async function authSubmit(){
+  const pwd = document.getElementById('auth-pwd').value;
+  if(!pwd) return;
+
+  const hash = await sha256(pwd);
+  const errEl = document.getElementById('auth-error');
+  const wrap  = document.getElementById('auth-input-wrap');
+
+  if(hash === AUTH_HASH){
+    // ✅ Correct — unlock
+    sessionStorage.setItem(SESSION_KEY,'1');
+    document.getElementById('auth-wall').classList.add('hidden');
+    document.getElementById('shell').style.visibility='visible';
+    errEl.classList.remove('show');
+  } else {
+    // ❌ Wrong — shake and show error
+    wrap.classList.remove('auth-shake');
+    void wrap.offsetWidth; // reflow to restart animation
+    wrap.classList.add('auth-shake');
+    errEl.classList.add('show');
+    document.getElementById('auth-pwd').value='';
+    document.getElementById('auth-pwd').focus();
+  }
+}
+
+/* Toggle password visibility */
+function authToggleEye(){
+  const inp = document.getElementById('auth-pwd');
+  const btn = document.getElementById('auth-eye-btn');
+  if(inp.type==='password'){ inp.type='text'; btn.textContent='🙈'; }
+  else                      { inp.type='password'; btn.textContent='👁'; }
+}
+
+/* Logout — clear session and show login wall again */
+function authLogout(){
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('auth-pwd').value='';
+  document.getElementById('auth-error').classList.remove('show');
+  document.getElementById('shell').style.visibility='hidden';
+  document.getElementById('auth-wall').classList.remove('hidden');
+  document.getElementById('auth-pwd').focus();
+}
+
+/* Run auth check immediately before anything else loads */
+authCheck();
 
 /* ─── FIREBASE CONFIG — REPLACE WITH YOUR OWN ────────── */
 const FIREBASE_CONFIG = {
