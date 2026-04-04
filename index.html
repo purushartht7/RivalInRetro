@@ -221,9 +221,16 @@ nav {
   padding:.28rem .8rem;
 }
 .card-img {
-  aspect-ratio:5/4; width:100%;
+  aspect-ratio:1/1; width:100%;
   display:flex; align-items:center; justify-content:center;
   position:relative; overflow:hidden;
+  background:#0d0d0d;
+}
+.card-img img {
+  width:100%; height:100%;
+  object-fit:contain;
+  display:block;
+  padding:.5rem;
 }
 .card-img-overlay {
   position:absolute; inset:0;
@@ -552,7 +559,7 @@ footer {
   display:flex; align-items:center; justify-content:center;
   overflow:hidden; flex-shrink:0;
 }
-.ci-thumb img { width:100%; height:100%; object-fit:cover; }
+.ci-thumb img { width:100%; height:100%; object-fit:contain; padding:4px; }
 .ci-thumb svg { width:32px; height:32px; opacity:.4; }
 
 .ci-info { min-width:0; }
@@ -948,7 +955,6 @@ const FIREBASE_CONFIG = {
   storageBucket: "rivalinretro-8a562.firebasestorage.app",
   messagingSenderId: "200802063722",
   appId: "1:200802063722:web:aea58b7801613814d08113"
-
 };
 
 // ── FIREBASE INIT ─────────────────────────────────────────────────
@@ -1241,7 +1247,7 @@ function jerseyArt(c1, c2, stripes, scale=1) {
 function cardVisual(p) {
   const img = p.images && p.images[0];
   return img
-    ? `<img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;display:block">`
+    ? `<img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;display:block;padding:.5rem">`
     : `<div class="jersey-wrap">${jerseyArt(p.c[0], p.c[1], p.stripes)}</div>`;
 }
 
@@ -1355,7 +1361,7 @@ function openModal(id) {
   if (thumbsEl) {
     if (cur.images && cur.images.length > 1) {
       thumbsEl.innerHTML = cur.images.map((img, i) =>
-        `<div onclick="document.getElementById('mVis').querySelector('img').src='${img}'" style="width:48px;height:48px;border:1px solid ${i===0?'#c8a84b':'#252525'};overflow:hidden;cursor:pointer;flex-shrink:0"><img src="${img}" style="width:100%;height:100%;object-fit:cover"></div>`
+        `<div onclick="document.getElementById('mVis').querySelector('img').src='${img}'" style="width:48px;height:48px;border:1px solid ${i===0?'#c8a84b':'#252525'};overflow:hidden;cursor:pointer;flex-shrink:0;background:#0d0d0d"><img src="${img}" style="width:100%;height:100%;object-fit:contain;padding:3px"></div>`
       ).join('');
       thumbsEl.style.display = 'flex';
     } else {
