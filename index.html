@@ -556,6 +556,46 @@ img{max-width:100%;height:auto;object-fit:contain;}
   .prod-grid{grid-template-columns:repeat(2,1fr);gap:.5rem;}
   .card-name{font-size:.75rem;}
 }
+
+/* ══ UPSELL POPUP ══ */
+.upsell-popup{
+  position:fixed;bottom:5rem;left:50%;
+  transform:translateX(-50%) translateY(140%);
+  z-index:600;
+  background:linear-gradient(135deg,#1a1200,#111109);
+  border:1px solid var(--gold);border-top:3px solid var(--gold);
+  padding:1.3rem 1.5rem 1.1rem;
+  max-width:340px;width:calc(100% - 2rem);
+  text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.75),0 0 40px rgba(200,168,75,.08);
+  transition:transform .45s cubic-bezier(.175,.885,.32,1.275);
+  pointer-events:none;
+}
+.upsell-popup.show{transform:translateX(-50%) translateY(0);pointer-events:all;}
+.upsell-fire{font-size:1.9rem;margin-bottom:.35rem;}
+.upsell-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.4rem;letter-spacing:2px;
+  color:var(--gold);line-height:1.1;margin-bottom:.3rem;
+}
+.upsell-sub{font-size:.78rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5;}
+.upsell-btns{display:flex;gap:.5rem;}
+.upsell-cta{
+  flex:1;background:var(--gold);color:#000;
+  border:none;padding:.72rem .5rem;
+  font-family:'DM Sans',sans-serif;
+  font-size:.76rem;font-weight:800;
+  letter-spacing:.5px;text-transform:uppercase;
+  cursor:pointer;transition:background .2s;
+}
+.upsell-cta:hover{background:var(--gold-light);}
+.upsell-dismiss{
+  background:none;border:1px solid var(--border-light);
+  color:var(--dim);padding:.72rem .85rem;
+  font-size:.75rem;cursor:pointer;transition:all .2s;
+}
+.upsell-dismiss:hover{border-color:var(--muted);color:var(--muted);}
+@media(max-width:768px){.upsell-popup{bottom:4rem;}}
 </style>
 </head>
 <body>
@@ -778,6 +818,17 @@ img{max-width:100%;height:auto;object-fit:contain;}
       Order via WhatsApp
     </button>
     <button class="cart-clear-btn" onclick="clearCart()">Clear Cart</button>
+  </div>
+</div>
+
+<!-- UPSELL POPUP — fires when first jersey added -->
+<div class="upsell-popup" id="upsellPopup">
+  <div class="upsell-fire">🔥</div>
+  <div class="upsell-title">Add 1 More & Get ₹100 OFF!</div>
+  <div class="upsell-sub">Buy 2 jerseys → ₹50 OFF each = ₹100 saved total</div>
+  <div class="upsell-btns">
+    <button class="upsell-cta" onclick="closeUpsell();document.getElementById('shop').scrollIntoView({behavior:'smooth'})">Add More &amp; Save</button>
+    <button class="upsell-dismiss" onclick="closeUpsell()">Maybe Later</button>
   </div>
 </div>
 
@@ -1093,118 +1144,96 @@ function clearCart(){
   cartSave([]); updateCartUI(); renderCartItems();
 }
 
-/* ── Offer Calculation ── */
-function calcOffer(items){
-  // Flatten all units (highest price first → max savings)
-  let units=[];
-  items.forEach(i=>{for(let q=0;q<i.qty;q++) units.push(i.price);});
-  units.sort((a,b)=>b-a);
+/* ── Pricing: ₹50/jersey only when ≥ 2 total units ── */
+const DELIVERY_SAVING = 78;
 
-  const n=units.length;
-  const g3=Math.floor(n/3);
-  const rem=n%3;
-  const origTotal=units.reduce((s,p)=>s+p,0);
-
-  let offered=g3*1599;
-  let offerMain='';
-  let offerUpsell='';
-
-  const remUnits=units.slice(g3*3);
-
-  if(n===0){ return {offered:0,origTotal:0,savings:0,offerMain:'',offerUpsell:'',n,g3,rem,offerLabel:''}; }
-
-  if(n===1){
-    offered=units[0]-50;
-    offerMain='✨ You unlocked ₹50 OFF!';
-    offerUpsell=`Add 1 more jersey to get <span class="cart-upsell-highlight">ANY 2 for ₹1,099 🔥</span>`;
-  } else if(n===2){
-    offered=1099;
-    offerMain='🔥 Offer applied: Any 2 jerseys for ₹1,099';
-    offerUpsell=`Add 1 more jersey to get <span class="cart-upsell-highlight">ANY 3 for ₹1,599 (Best Value) 💰</span>`;
-  } else if(n===3 && g3===1){
-    offered=1599;
-    offerMain='🏆 Best Deal Unlocked: Any 3 jerseys for ₹1,599!';
-    offerUpsell='';
-  } else {
-    // n > 3
-    if(rem===0){
-      // all in bundles of 3
-      offerMain=`🔥 ${g3} × Best Deal bundles applied (3 for ₹1,599 each)`;
-      offerUpsell='';
-    } else if(rem===1){
-      offered+=remUnits[0]-50;
-      offerMain='🔥 Bundle offers + ₹50 OFF on remaining jersey applied';
-      offerUpsell=`Add 2 more jerseys to unlock <span class="cart-upsell-highlight">another Best Deal bundle 🔥</span>`;
-    } else if(rem===2){
-      offered+=1099;
-      offerMain='🔥 Bundle offers applied (incl. 2-jersey deal)';
-      offerUpsell=`Add 1 more jersey to unlock <span class="cart-upsell-highlight">another Best Deal at ₹1,599 🔥</span>`;
-    }
-  }
-
-  const savings=origTotal-offered;
-  const offerLabel = n===3&&g3===1 ? 'BEST DEAL' : n>=2 ? 'OFFER APPLIED' : '₹50 OFF';
-  return {offered,origTotal,savings,offerMain,offerUpsell,n,g3,rem,offerLabel};
+function calcPricing(items){
+  const totalUnits = items.reduce((s,i) => s + i.qty, 0);
+  const origTotal  = items.reduce((s,i) => s + i.price * i.qty, 0);
+  const discPerUnit = totalUnits >= 2 ? 50 : 0;
+  const jerseyDisc  = discPerUnit * totalUnits;
+  const finalTotal  = origTotal - jerseyDisc;
+  const totalSaved  = jerseyDisc + DELIVERY_SAVING;   // always add free delivery
+  return { totalUnits, origTotal, discPerUnit, jerseyDisc, finalTotal, totalSaved };
 }
 
 /* ── Update UI ── */
 function updateCartUI(){
-  const items=cartLoad();
-  const count=cartCount();
-  const badge=document.getElementById('cartBadge');
-  const pill=document.getElementById('cartCountPill');
-  const ft=document.getElementById('cartFt');
-  const offerBanner=document.getElementById('cartOfferBanner');
-  const delivery=document.getElementById('cartDelivery');
+  const items = cartLoad();
+  const count = cartCount();
+  const badge = document.getElementById('cartBadge');
+  const pill  = document.getElementById('cartCountPill');
+  const ft    = document.getElementById('cartFt');
+  const offerBanner = document.getElementById('cartOfferBanner');
+  const delivery    = document.getElementById('cartDelivery');
 
-  badge.textContent=count;
-  badge.classList.toggle('visible',count>0);
-  pill.textContent=count===1?'1 item':`${count} items`;
+  badge.textContent = count;
+  badge.classList.toggle('visible', count > 0);
+  pill.textContent  = count === 1 ? '1 item' : `${count} items`;
 
   if(!count){
-    if(ft) ft.style.display='none';
-    if(offerBanner) offerBanner.style.display='none';
-    if(delivery) delivery.style.display='none';
+    if(ft) ft.style.display = 'none';
+    if(offerBanner) offerBanner.style.display = 'none';
+    if(delivery)    delivery.style.display    = 'none';
     return;
   }
 
-  const {offered,origTotal,savings,offerMain,offerUpsell,n,offerLabel}=calcOffer(items);
+  const { totalUnits, origTotal, discPerUnit, jerseyDisc, finalTotal, totalSaved } = calcPricing(items);
 
   // Offer banner
   if(offerBanner){
-    offerBanner.style.display='block';
-    document.getElementById('cartOfferMain').textContent=offerMain;
-    document.getElementById('cartOfferUpsell').innerHTML=offerUpsell;
+    offerBanner.style.display = 'block';
+    const offerMainEl   = document.getElementById('cartOfferMain');
+    const offerUpsellEl = document.getElementById('cartOfferUpsell');
+    if(totalUnits === 1){
+      offerMainEl.textContent  = '🛒 1 jersey · Delivery FREE';
+      offerUpsellEl.innerHTML  = '<span class="cart-upsell-highlight">Add 1 more jersey & get ₹100 OFF 🔥</span>';
+    } else {
+      offerMainEl.textContent  = `🎉 ₹50 OFF × ${totalUnits} jerseys applied!`;
+      offerUpsellEl.innerHTML  = `You save ₹${jerseyDisc.toLocaleString('en-IN')} on jerseys + ₹${DELIVERY_SAVING} delivery`;
+    }
   }
 
   // Delivery banner
-  if(delivery) delivery.style.display='flex';
+  if(delivery) delivery.style.display = 'flex';
 
-  // Pricing row
-  const pricingRow=document.getElementById('cartPricingRow');
+  // Pricing row in footer
+  const pricingRow = document.getElementById('cartPricingRow');
   if(pricingRow){
-    pricingRow.innerHTML=`
-      ${savings>0?`
-        <div class="cart-orig-total"><span>Original total</span><span class="cart-orig-val">₹${origTotal.toLocaleString('en-IN')}</span></div>
-        <div class="cart-savings-row"><span>🎉 You save</span><span>−₹${savings.toLocaleString('en-IN')}</span></div>
-      `:''}
+    pricingRow.innerHTML = `
+      <div class="cart-orig-total">
+        <span>Original (${totalUnits} jersey${totalUnits!==1?'s':''})</span>
+        <span class="cart-orig-val">₹${origTotal.toLocaleString('en-IN')}</span>
+      </div>
+      ${jerseyDisc > 0 ? `
+      <div class="cart-savings-row">
+        <span>Discount (₹50 × ${totalUnits})</span>
+        <span>−₹${jerseyDisc.toLocaleString('en-IN')}</span>
+      </div>` : ''}
+      <div class="cart-savings-row" style="color:var(--muted);font-weight:400">
+        <span>Delivery</span>
+        <span><span style="text-decoration:line-through;color:var(--dim)">₹${DELIVERY_SAVING}</span> <span style="color:#4caf8a;font-weight:700">FREE</span></span>
+      </div>
+      <div class="cart-savings-row" style="background:rgba(76,175,138,.1);border:1px solid rgba(76,175,138,.2);padding:.4rem .7rem;margin:.35rem 0;font-weight:700;color:#4caf8a;">
+        <span>🎉 You Save</span>
+        <span>₹${totalSaved.toLocaleString('en-IN')}</span>
+      </div>
       <div class="cart-subtotal">
-        <span class="cart-subtotal-l">Final Total</span>
-        <span class="cart-subtotal-v">₹${offered.toLocaleString('en-IN')}</span>
+        <span class="cart-subtotal-l">Final Amount</span>
+        <span class="cart-subtotal-v">₹${finalTotal.toLocaleString('en-IN')}</span>
       </div>`;
   }
 
-  const line=document.getElementById('cartItemsLine');
-  if(line) line.textContent=`${items.length} jersey${items.length!==1?'s':''} · ${count} unit${count!==1?'s':''}`;
+  const line = document.getElementById('cartItemsLine');
+  if(line) line.textContent = `${items.length} jersey${items.length!==1?'s':''} · ${count} unit${count!==1?'s':''}`;
 
-  if(ft) ft.style.display='block';
+  if(ft) ft.style.display = 'block';
 }
 
 /* ── Render Items ── */
 function renderCartItems(){
-  const list=document.getElementById('cartItemsList');
-  const items=cartLoad();
-  const {offerLabel}=calcOffer(items);
+  const list  = document.getElementById('cartItemsList');
+  const items = cartLoad();
 
   if(!items.length){
     list.innerHTML=`
@@ -1216,11 +1245,15 @@ function renderCartItems(){
     return;
   }
 
-  list.innerHTML=items.map(item=>{
-    const lineTotal=(item.price*item.qty).toLocaleString('en-IN');
-    const thumb=item.image
-      ?`<img src="${item.image}" alt="${item.name}">`
-      :`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>`;
+  const { discPerUnit } = calcPricing(items);
+
+  list.innerHTML = items.map(item => {
+    const origLine  = item.price * item.qty;
+    const discLine  = discPerUnit * item.qty;
+    const finalLine = origLine - discLine;
+    const thumb = item.image
+      ? `<img src="${item.image}" alt="${item.name}">`
+      : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>`;
     return `
       <div class="cart-item">
         <div class="ci-thumb">${thumb}</div>
@@ -1228,13 +1261,18 @@ function renderCartItems(){
           <div class="ci-name" title="${item.name}">${item.name}</div>
           <div class="ci-meta">
             <span>Size ${item.size}</span>
-            <span>₹${item.price.toLocaleString('en-IN')} each</span>
+            ${discPerUnit > 0
+              ? `<span style="color:#4caf8a;border-color:rgba(76,175,138,.3)">₹50 OFF each</span>`
+              : `<span>₹${item.price.toLocaleString('en-IN')} each</span>`}
           </div>
           <div class="ci-qty-row">
             <button class="ci-qb" onclick="cartUpdateQty('${item.key}',-1)">−</button>
             <span class="ci-qnum">${item.qty}</span>
             <button class="ci-qb" onclick="cartUpdateQty('${item.key}',1)">+</button>
-            <span class="ci-price">₹${lineTotal}</span>
+            ${discPerUnit > 0
+              ? `<span class="ci-price" style="text-decoration:line-through;color:var(--dim);font-size:.76rem">₹${origLine.toLocaleString('en-IN')}</span>
+                 <span class="ci-price">₹${finalLine.toLocaleString('en-IN')}</span>`
+              : `<span class="ci-price">₹${origLine.toLocaleString('en-IN')}</span>`}
           </div>
         </div>
         <button class="ci-del" onclick="cartRemove('${item.key}')" title="Remove">✕</button>
@@ -1275,23 +1313,24 @@ function bounceCartIcon(){
 
 /* ── WhatsApp Cart Checkout ── */
 function checkoutWA(){
-  const items=cartLoad();
-  if(!items.length){showNudge('Your cart is empty!');return;}
-  const brand=window._brand||'Rival in Retro';
-  const {offered,origTotal,savings,offerLabel,n,g3,rem}=calcOffer(items);
+  const items = cartLoad();
+  if(!items.length){ showNudge('Your cart is empty!'); return; }
+  const brand = window._brand || 'Rival in Retro';
+  const { totalUnits, origTotal, discPerUnit, jerseyDisc, finalTotal, totalSaved } = calcPricing(items);
 
-  const lines=items.map((item,i)=>
-    `${i+1}. Jersey: *${item.name}*\n   Size: ${item.size} | Qty: ${item.qty}\n   Price: ₹${(item.price*item.qty).toLocaleString('en-IN')}`
-  ).join('\n\n');
+  const lines = items.map((item,i) => {
+    const origLine  = item.price * item.qty;
+    const discLine  = discPerUnit * item.qty;
+    const finalLine = origLine - discLine;
+    return `${i+1}. Jersey: *${item.name}*\n   Size: ${item.size} | Qty: ${item.qty}\n   Price: ₹${finalLine.toLocaleString('en-IN')}${discLine>0?` ~~₹${origLine.toLocaleString('en-IN')}~~`:''}`;
+  }).join('\n\n');
 
-  let offerLine='';
-  if(n===1) offerLine='Offer Applied: ₹50 OFF';
-  else if(n===2) offerLine='Offer Applied: 2 Jerseys for ₹1,099';
-  else if(n===3&&g3===1) offerLine='Offer Applied: 3 Jerseys for ₹1,599 (Best Deal)';
-  else if(g3>0) offerLine=`Offer Applied: ${g3}× Bundle (3 for ₹1,599 each)${rem===2?' + 2 for ₹1,099':rem===1?' + ₹50 OFF on 1':''}`;
+  const discNote = jerseyDisc > 0
+    ? `\n💸 Discount (₹50 × ${totalUnits} jerseys): −₹${jerseyDisc.toLocaleString('en-IN')}`
+    : '';
 
-  const msg=`Hi ${brand}! 👋\n\nI'd like to place an order:\n\n🛒 *ORDER DETAILS*\n━━━━━━━━━━━━━━━━━━━━━━\n${lines}\n━━━━━━━━━━━━━━━━━━━━━━\n${savings>0?`Original Total: ~~₹${origTotal.toLocaleString('en-IN')}~~\nYou Save: ₹${savings.toLocaleString('en-IN')}\n`:''}${offerLine}\n✅ *Final Payable Amount: ₹${offered.toLocaleString('en-IN')}*\n🚚 Delivery: FREE\n\nPlease confirm availability and share payment details. Thank you!`;
-  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`,'_blank');
+  const msg = `Hi ${brand}! 👋\n\nI'd like to place an order:\n\n🛒 *ORDER DETAILS*\n━━━━━━━━━━━━━━━━━━━━━━\n${lines}\n━━━━━━━━━━━━━━━━━━━━━━${discNote}\n🚚 Delivery: ~~₹${DELIVERY_SAVING}~~ → FREE\n🎉 You Saved: ₹${totalSaved.toLocaleString('en-IN')}\n✅ *Final Payable Amount: ₹${finalTotal.toLocaleString('en-IN')}*\n\nPlease confirm availability and share payment details. Thank you!`;
+  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1422,27 +1461,45 @@ function pickSize(s,el){document.querySelectorAll('.sz').forEach(b=>b.classList.
 function chQty(d){qty=Math.max(1,Math.min(10,qty+d));document.getElementById('qVal').textContent=qty;updateTotal();}
 function updateTotal(){if(!cur) return;document.getElementById('mTotal').textContent='₹'+(cur.price*qty).toLocaleString('en-IN');}
 
+/* ── Upsell popup ── */
+let _upsellTimer;
+function showUpsellPopup(){
+  const el = document.getElementById('upsellPopup');
+  el.classList.add('show');
+  clearTimeout(_upsellTimer);
+  _upsellTimer = setTimeout(() => el.classList.remove('show'), 7000);
+}
+function closeUpsell(){
+  clearTimeout(_upsellTimer);
+  document.getElementById('upsellPopup').classList.remove('show');
+}
+
 function addToCartFromModal(){
   if(!size){showNudge('Please select a size first!');return;}
   cartAdd(cur,size,qty);
   bounceCartIcon();
-  // Show offer-aware nudge
-  const n=cartCount();
-  let msg=`✓ Added to cart`;
-  if(n===2) msg='🔥 2 jerseys → ₹1,099 deal unlocked!';
-  else if(n===3) msg='🏆 3 jerseys → ₹1,599 best deal!';
-  showNudge(msg);
   document.getElementById('overlay').classList.remove('open');
+
+  const totalUnits = cartCount();
+  if(totalUnits === 1){
+    // First jersey — show upsell popup
+    showUpsellPopup();
+    showNudge('✓ Added! Add 1 more for ₹100 OFF 🔥');
+  } else if(totalUnits === 2){
+    showNudge('🎉 ₹100 OFF unlocked! ₹50 per jersey saved');
+  } else {
+    showNudge(`✓ ${cur.name} (${size}) added to cart`);
+  }
 }
 
 function sendWA(){
   if(!size){showNudge('Please select a size first!');return;}
-  const total=cur.price*qty;
-  const brand=window._brand||'Rival in Retro';
-  const finalTotal=qty===1?total-50:total;
-  const offerNote=qty===1?'\nOffer Applied: ₹50 OFF':'';
-  const msg=`Hi ${brand}! 👋\n\nI'd like to place an order:\n\n🛒 *ORDER DETAILS*\n━━━━━━━━━━━━━━━━━━━━\n📌 Jersey: *${cur.name}*\n🏷 Category: ${cur.label}\n📏 Size: *${size}*\n🔢 Quantity: *${qty}*\n💰 Price: ₹${cur.price.toLocaleString('en-IN')}${offerNote}\n✅ *Final Payable: ₹${finalTotal.toLocaleString('en-IN')}*\n🚚 Delivery: FREE\n━━━━━━━━━━━━━━━━━━━━\n\nPlease confirm availability and share payment details. Thank you!`;
-  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`,'_blank');
+  const brand   = window._brand || 'Rival in Retro';
+  const unitTotal = cur.price * qty;
+  // single direct order: no jersey discount (qty here is for this one item,
+  // we don't know cart state — treat as standalone = no ₹50 off)
+  const msg = `Hi ${brand}! 👋\n\nI'd like to place an order:\n\n🛒 *ORDER DETAILS*\n━━━━━━━━━━━━━━━━━━━━\n📌 Jersey: *${cur.name}*\n🏷 Category: ${cur.label}\n📏 Size: *${size}*\n🔢 Quantity: *${qty}*\n💰 Price: ₹${cur.price.toLocaleString('en-IN')} × ${qty}\n🚚 Delivery: ~~₹${DELIVERY_SAVING}~~ → FREE\n🎉 You Save: ₹${DELIVERY_SAVING} (delivery)\n✅ *Final Payable Amount: ₹${unitTotal.toLocaleString('en-IN')}*\n━━━━━━━━━━━━━━━━━━━━\n\nPlease confirm availability and share payment details. Thank you!`;
+  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1460,6 +1517,7 @@ document.addEventListener('keydown',e=>{
     document.getElementById('overlay').classList.remove('open');
     closeCart();
     closeSearch();
+    closeUpsell();
   }
 });
 </script>
