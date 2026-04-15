@@ -677,7 +677,7 @@ img{max-width:100%;height:auto;object-fit:contain;}
 <div class="stats" id="statsSection">
   <div class="stat"><div class="stat-n" data-target="2500" data-suffix="+">0+</div><div class="stat-l">Jerseys Delivered</div></div>
   <div class="stat"><div class="stat-n" data-target="1500" data-suffix="+">0+</div><div class="stat-l">Happy Customers</div></div>
-  <div class="stat"><div class="stat-n" data-target="6" data-suffix="">0</div><div class="stat-l">Collections</div></div>
+  <div class="stat"><div class="stat-n" data-target="20" data-suffix="">0</div><div class="stat-l">Collections</div></div>
   <div class="stat"><div class="stat-n" data-target="49" data-suffix=" ★" data-decimal="1">0 ★</div><div class="stat-l">Customer Rating</div></div>
 </div>
 
@@ -709,9 +709,11 @@ img{max-width:100%;height:auto;object-fit:contain;}
       <button class="tab" data-cat="intl-football">🌍 International Football</button>
       <button class="tab" data-cat="world-cup">🏆 World Cup 2026</button>
       <button class="tab" data-cat="ipl">🏏 IPL 2026</button>
-      <button class="tab" data-cat="cricket">💪🔥 Jackets & Sleeveless</button>
+      <button class="tab" data-cat="cricket">🔥 Jackets & Sleeveless</button>
       <button class="tab" data-cat="croptops">👚 Croptops</button>
       <button class="tab" data-cat="retro">🕰 Retro Collection</button>
+      <button class="tab" data-cat="f1">🏎️💨 Formula 1</button>
+      <button class="tab" data-cat="basketball">🏀 Basketball</button>
     </div>
   </div>
   <div class="grid-wrap">
@@ -923,6 +925,8 @@ const CAT_META = {
   'cricket':        { label:'Jackets & Sleeveless',    c:['#1a1a2e','#c8a84b'], stripes:false },
   'retro':          { label:'Retro Collection',        c:['#8B1A1A','#D4AF37'], stripes:false },
   'croptops':       { label:'Croptops',                c:['#6b21a8','#f0abfc'], stripes:false },
+  'f1':             { label:'Formula 1',               c:['#ff0000','#ff6b00'], stripes:false },
+  'basketball':              { label:'Basketball',                                        c:['#c97a2b','#8b4513'],  stripes:false },
 };
 function enrich(p){
   const m = CAT_META[p.cat]||{label:p.cat,c:['#222','#c8a84b'],stripes:false};
