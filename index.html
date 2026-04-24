@@ -644,13 +644,13 @@ img{max-width:100%;height:auto;object-fit:contain;}
 .pdp-crumb a:hover{color:var(--gold);}
 .pdp-crumb span{color:var(--muted);}
 
-/* Two-column layout */
+/* Two-column layout — 60:40 adidas-style */
 .pdp-layout{
   max-width:1300px;margin:0 auto;
   padding:1.5rem 2rem 5rem;
   display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:3.5rem;align-items:start;
+  grid-template-columns:3fr 2fr;
+  gap:4rem;align-items:start;
 }
 
 /* ── LEFT: Gallery ── */
@@ -863,6 +863,69 @@ img{max-width:100%;height:auto;object-fit:contain;}
 .pdp-trust-name{font-family:'Playfair Display',serif;font-size:.88rem;margin-bottom:.25rem;}
 .pdp-trust-text{font-size:.72rem;color:var(--muted);line-height:1.6;}
 
+/* ── Breadcrumb inside right column ── */
+.pdp-info-crumb{
+  display:flex;align-items:center;gap:.4rem;
+  font-size:.65rem;color:var(--dim);margin-bottom:.9rem;flex-wrap:wrap;
+}
+.pdp-info-crumb a{color:var(--dim);text-decoration:none;cursor:pointer;transition:color .15s;}
+.pdp-info-crumb a:hover{color:var(--gold);}
+.pdp-info-crumb svg{flex-shrink:0;opacity:.5;}
+
+/* ── Product badge ── */
+.pdp-badge{
+  display:inline-flex;align-items:center;
+  background:var(--gold);color:#000;
+  font-family:'DM Sans',sans-serif;
+  font-size:.6rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  padding:.22rem .7rem;margin-bottom:.75rem;
+}
+.pdp-badge.secondary{background:var(--surface);color:var(--gold);border:1px solid var(--gold);background:var(--gold-dim);}
+
+/* ── Price subtext ── */
+.pdp-price-sub{
+  font-size:.72rem;color:var(--muted);margin-bottom:1.4rem;line-height:1.6;
+}
+
+/* ── Description toggle ── */
+.pdp-desc{
+  margin-top:1.5rem;padding-top:1.5rem;
+  border-top:1px solid var(--border);
+}
+.pdp-desc-label{
+  font-size:.62rem;color:var(--gold);text-transform:uppercase;
+  letter-spacing:2.5px;margin-bottom:.65rem;
+}
+.pdp-desc-text{
+  font-size:.83rem;color:var(--muted);line-height:1.85;
+  overflow:hidden;max-height:1.85em; /* one line */
+  transition:max-height .35s ease;
+}
+.pdp-desc-text.expanded{max-height:500px;}
+.pdp-desc-toggle{
+  display:inline-flex;align-items:center;gap:.3rem;
+  background:none;border:none;
+  color:var(--gold);font-family:'DM Sans',sans-serif;
+  font-size:.72rem;font-weight:600;cursor:pointer;
+  margin-top:.5rem;padding:0;letter-spacing:.3px;
+  transition:opacity .15s;
+}
+.pdp-desc-toggle:hover{opacity:.75;}
+
+/* ── Recommendations ── */
+.pdp-recs{
+  max-width:1300px;margin:0 auto;
+  padding:2.5rem 2rem 4rem;
+  border-top:1px solid var(--border);
+}
+.pdp-recs-eyebrow{font-size:.6rem;color:var(--gold);text-transform:uppercase;letter-spacing:3px;margin-bottom:.3rem;}
+.pdp-recs-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.5rem,3vw,2rem);letter-spacing:2px;margin-bottom:1.8rem;}
+.pdp-recs-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:1rem;
+}
+
 /* ── FULLSCREEN VIEWER ── */
 .fs-viewer{
   position:fixed;inset:0;z-index:900;
@@ -925,24 +988,31 @@ img{max-width:100%;height:auto;object-fit:contain;}
 .fs-no-img{color:rgba(255,255,255,.3);font-size:4rem;text-align:center;}
 
 /* ── RESPONSIVE — PDP ── */
+@media(max-width:1024px){
+  .pdp-layout{grid-template-columns:55fr 45fr;gap:2.5rem;}
+}
 @media(max-width:900px){
   .pdp-layout{grid-template-columns:1fr;gap:2rem;padding:1rem 1.2rem 4rem;}
   .pdp-gallery{position:static;}
   .pdp-zoom-result{display:none!important;}
   .pdp-zoom-lens{display:none!important;}
   .pdp-trust-grid{grid-template-columns:repeat(2,1fr);}
+  .pdp-recs{padding:2rem 1.2rem 3rem;}
+  .pdp-recs-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));}
 }
 @media(max-width:600px){
   .pdp-nav{padding:0 .9rem;height:56px;}
   .pdp-crumb{padding:.5rem .9rem;}
   .pdp-layout{padding:.75rem .9rem 3.5rem;}
-  .pdp-name{font-size:1.3rem;margin-bottom:1rem;}
+  .pdp-name{font-size:1.3rem;margin-bottom:.75rem;}
   .pdp-price{font-size:1.8rem;}
   .pdp-sz{min-width:44px;height:44px;font-size:.8rem;}
   .pdp-thumb{width:58px;height:58px;}
   .pdp-trust-grid{grid-template-columns:1fr 1fr;}
   .pdp-trust-item{padding:.85rem .65rem;}
   .fs-arrow{width:36px;height:36px;font-size:1.1rem;}
+  .pdp-recs{padding:1.5rem .9rem 2.5rem;}
+  .pdp-recs-grid{grid-template-columns:repeat(2,1fr);gap:.65rem;}
 }
 </style>
 </head>
@@ -1178,7 +1248,7 @@ img{max-width:100%;height:auto;object-fit:contain;}
   <div class="upsell-title">Add 1 More & Get ₹100 OFF!</div>
   <div class="upsell-sub">Buy 2 jerseys → ₹50 OFF each = ₹100 saved total</div>
   <div class="upsell-btns">
-    <button class="upsell-cta" onclick="closeUpsell();document.getElementById('shop').scrollIntoView({behavior:'smooth'})">Add More &amp; Save</button>
+    <button class="upsell-cta" onclick="upsellRedirect()">Add More &amp; Save</button>
     <button class="upsell-dismiss" onclick="closeUpsell()">Maybe Later</button>
   </div>
 </div>
@@ -1206,15 +1276,6 @@ img{max-width:100%;height:auto;object-fit:contain;}
     </div>
   </nav>
 
-  <!-- Breadcrumb -->
-  <div class="pdp-crumb">
-    <a onclick="closePDP()">Home</a>
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-    <a onclick="closePDP();document.getElementById('shop').scrollIntoView({behavior:'smooth'})">Shop</a>
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-    <span id="pdpCrumbCat"></span>
-  </div>
-
   <!-- Two-column layout -->
   <div class="pdp-layout">
 
@@ -1241,28 +1302,44 @@ img{max-width:100%;height:auto;object-fit:contain;}
       <div class="pdp-thumbs" id="pdpThumbs"></div>
     </div>
 
-    <!-- RIGHT: Product Info -->
+    <!-- RIGHT: Product Info — strict order -->
     <div class="pdp-info">
-      <div class="pdp-cat" id="pdpCat"></div>
+
+      <!-- 1. Breadcrumb (right side) -->
+      <div class="pdp-info-crumb">
+        <a onclick="closePDP()">Home</a>
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        <a onclick="closePDP();document.getElementById('shop').scrollIntoView({behavior:'smooth'})">Shop</a>
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        <span id="pdpCrumbCat2"></span>
+      </div>
+
+      <!-- 2. Badge from admin -->
+      <div id="pdpBadgeWrap" style="display:none">
+        <div class="pdp-badge" id="pdpBadge"></div>
+      </div>
+
+      <!-- 3. Product Title -->
       <div class="pdp-name" id="pdpName"></div>
 
+      <!-- 4. Price + disc -->
       <div class="pdp-pricing-row">
         <span class="pdp-price" id="pdpPrice"></span>
         <span class="pdp-mrp" id="pdpMrp"></span>
         <span class="pdp-disc" id="pdpDisc"></span>
       </div>
-      <div class="pdp-save" id="pdpSave"></div>
 
-      <!-- Offer highlights -->
-      <div class="pdp-offers">
-        <div class="pdp-offer-pill"><strong>₹50 OFF</strong>&nbsp;each on 2+ jerseys</div>
-        <div class="pdp-offer-pill"><strong>Free</strong>&nbsp;delivery</div>
-        <div class="pdp-offer-pill"><strong>WhatsApp</strong>&nbsp;order</div>
+      <!-- 5. Price subtext -->
+      <div class="pdp-price-sub">
+        MRP in <strong style="color:var(--text)">Indian Rupees (₹)</strong> per unit<br>
+        Inclusive of all taxes &amp; duties · Free delivery across India
       </div>
 
+      <!-- 6. Size Selector -->
       <div class="pdp-label">Choose Size</div>
       <div class="pdp-size-row" id="pdpSizeRow"></div>
 
+      <!-- 7. Quantity Selector -->
       <div class="pdp-label">Quantity</div>
       <div class="pdp-qty-row">
         <button class="pdp-qb" onclick="pdpChQty(-1)">−</button>
@@ -1270,26 +1347,52 @@ img{max-width:100%;height:auto;object-fit:contain;}
         <button class="pdp-qb" onclick="pdpChQty(1)">+</button>
       </div>
 
+      <!-- 8. Item Total -->
       <div class="pdp-total-row">
         <span class="pdp-total-l">Item Total</span>
         <span class="pdp-total-v" id="pdpTotal">₹0</span>
       </div>
 
+      <!-- 9. Add to Cart -->
       <button class="pdp-btn-atc" onclick="pdpAddToCart()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
         Add to Cart
       </button>
-      <button class="pdp-btn-wa" onclick="pdpSendWA()">
+
+      <!-- 10. Order on WhatsApp -->
+      <button class="pdp-btn-wa" onclick="pdpSendWA()" style="margin-top:.6rem">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         Order Now on WhatsApp
       </button>
-      <div class="pdp-note">Add to cart to unlock bundle savings — ₹50 OFF each on 2+ jerseys.</div>
 
-      <!-- Product description -->
-      <div class="pdp-desc" id="pdpDesc" style="display:none"></div>
+      <!-- 11. Offer Section -->
+      <div class="pdp-offers" style="margin-top:1.2rem">
+        <div class="pdp-offer-pill">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <strong>Buy 2</strong>&nbsp;→ any 2 jerseys for ₹1099
+        </div>
+        <div class="pdp-offer-pill">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <strong>Buy 3</strong>&nbsp;→ any 3 jerseys for ₹1649
+        </div>
+        <div class="pdp-offer-pill">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <strong>Free</strong>&nbsp;delivery on all orders
+        </div>
+      </div>
 
-      <!-- Trust block -->
-      <div class="pdp-trust">
+      <!-- 12. Description with toggle -->
+      <div class="pdp-desc" id="pdpDescBlock" style="display:none">
+        <div class="pdp-desc-label">About this jersey</div>
+        <div class="pdp-desc-text" id="pdpDescText"></div>
+        <button class="pdp-desc-toggle" id="pdpDescToggle" onclick="togglePdpDesc()">
+          Show more
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="pdpDescChevron"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+
+      <!-- 13. Rival Promise — updated text -->
+      <div class="pdp-trust" style="margin-top:1.8rem">
         <div class="pdp-trust-title">The Rival Promise</div>
         <div class="pdp-trust-grid">
           <div class="pdp-trust-item">
@@ -1300,7 +1403,7 @@ img{max-width:100%;height:auto;object-fit:contain;}
           <div class="pdp-trust-item">
             <div class="pdp-trust-icon">🔥</div>
             <div class="pdp-trust-name">Bundle Savings</div>
-            <div class="pdp-trust-text">₹50 OFF each jersey when you buy 2 or more</div>
+            <div class="pdp-trust-text">Buy any 2 jerseys for ₹1099 or any 3 jerseys for ₹1649 across the website</div>
           </div>
           <div class="pdp-trust-item">
             <div class="pdp-trust-icon">💬</div>
@@ -1314,9 +1417,18 @@ img{max-width:100%;height:auto;object-fit:contain;}
           </div>
         </div>
       </div>
+
     </div>
 
+  </div><!-- /pdp-layout -->
+
+  <!-- 14. Recommendations — same category, dynamic, excludes current -->
+  <div class="pdp-recs" id="pdpRecs" style="display:none">
+    <div class="pdp-recs-eyebrow">You May Also Like</div>
+    <div class="pdp-recs-title" id="pdpRecsTitle">MORE FROM THIS COLLECTION</div>
+    <div class="pdp-recs-grid" id="pdpRecsGrid"></div>
   </div>
+
 </div>
 
 <!-- ═══════════════════════════════════════════════════
@@ -1975,6 +2087,21 @@ function closeUpsell(){
   clearTimeout(_upsellTimer);
   document.getElementById('upsellPopup').classList.remove('show');
 }
+function upsellRedirect(){
+  closeUpsell();
+  // If PDP is open, go to same-category tab; otherwise just scroll to shop
+  if(_pdpProduct){
+    const cat = _pdpProduct.cat || 'all';
+    closePDP();
+    // Short delay so PDP close animation finishes first
+    setTimeout(() => {
+      setTab(cat);
+      document.getElementById('shop').scrollIntoView({behavior:'smooth'});
+    }, 320);
+  } else {
+    document.getElementById('shop').scrollIntoView({behavior:'smooth'});
+  }
+}
 
 function addToCartFromModal(){
   if(!size){showNudge('Please select a size first!');return;}
@@ -2055,40 +2182,66 @@ function _renderPDP(){
   const save = p.mrp - p.price;
   const disc = Math.round(save / p.mrp * 100);
 
-  // Breadcrumb
-  document.getElementById('pdpCrumbCat').textContent = p.label;
+  // Breadcrumb (inside right column)
+  const crumb2 = document.getElementById('pdpCrumbCat2');
+  if(crumb2) crumb2.textContent = p.label;
 
-  // Info
-  document.getElementById('pdpCat').textContent   = p.label;
+  // Badge from admin (p.badge field)
+  const badgeWrap = document.getElementById('pdpBadgeWrap');
+  const badgeEl   = document.getElementById('pdpBadge');
+  if(p.badge && p.badge.trim()){
+    badgeEl.textContent      = p.badge;
+    badgeWrap.style.display  = 'block';
+    // Style it based on keyword
+    const lower = p.badge.toLowerCase();
+    badgeEl.className = 'pdp-badge' + (lower.includes('limit') || lower.includes('sold') ? ' secondary' : '');
+  } else {
+    badgeWrap.style.display = 'none';
+  }
+
+  // Title, price, disc
   document.getElementById('pdpName').textContent  = p.name;
   document.getElementById('pdpPrice').textContent = `₹${p.price.toLocaleString('en-IN')}`;
   document.getElementById('pdpMrp').textContent   = `MRP ₹${p.mrp.toLocaleString('en-IN')}`;
   document.getElementById('pdpDisc').textContent  = `${disc}% OFF`;
-  document.getElementById('pdpSave').textContent  = `You save ₹${save.toLocaleString('en-IN')} on this item`;
 
-  // Desc
-  const descEl = document.getElementById('pdpDesc');
-  descEl.style.display = p.desc ? 'block' : 'none';
-  descEl.textContent   = p.desc || '';
+  // Description with toggle (show one line, expand on click)
+  const descBlock  = document.getElementById('pdpDescBlock');
+  const descText   = document.getElementById('pdpDescText');
+  const descToggle = document.getElementById('pdpDescToggle');
+  if(p.desc && p.desc.trim()){
+    descText.textContent     = p.desc;
+    descBlock.style.display  = 'block';
+    descText.classList.remove('expanded');
+    descToggle.innerHTML = 'Show more <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
+    // Hide toggle if text is short enough to not need it
+    const lineHeight  = parseFloat(getComputedStyle(descText).lineHeight) || 22;
+    setTimeout(() => {
+      descToggle.style.display = descText.scrollHeight > lineHeight * 1.5 ? 'inline-flex' : 'none';
+    }, 50);
+  } else {
+    descBlock.style.display = 'none';
+  }
 
   // Gallery
-  const mainImg   = document.getElementById('pdpMainImg');
-  const noImg     = document.getElementById('pdpNoImg');
-  const mainWrap  = document.getElementById('pdpMainWrap');
+  const mainImg  = document.getElementById('pdpMainImg');
+  const noImg    = document.getElementById('pdpNoImg');
+  const mainWrap = document.getElementById('pdpMainWrap');
 
   if(_pdpImgs.length){
     mainImg.src   = _pdpImgs[0];
     mainImg.alt   = p.name;
     mainImg.style.display = 'block';
     noImg.style.display   = 'none';
+    mainWrap.style.background = '#0d0d0d';
   } else {
     mainImg.style.display = 'none';
     noImg.style.display   = 'flex';
-    noImg.innerHTML = jerseyArt(p.c[0], p.c[1], p.stripes, 1.4);
+    noImg.innerHTML       = jerseyArt(p.c[0], p.c[1], p.stripes, 1.4);
     mainWrap.style.background = `linear-gradient(135deg,${p.c[0]}22,${p.c[1]}18)`;
   }
 
-  // Main image arrows
+  // Arrows
   document.getElementById('pdpImgPrev').classList.toggle('hidden', _pdpImgs.length <= 1);
   document.getElementById('pdpImgNext').classList.toggle('hidden', _pdpImgs.length <= 1);
 
@@ -2114,11 +2267,73 @@ function _renderPDP(){
   document.getElementById('pdpQval').textContent = 1;
   _pdpUpdateTotal();
 
-  // Badge update
+  // Badge sync
   _syncPdpCartBadge();
 
-  // Init hover zoom
+  // Hover zoom
   _initHoverZoom();
+
+  // Recommendations
+  _renderRecommendations();
+}
+
+/* ── Description toggle ── */
+function togglePdpDesc(){
+  const text    = document.getElementById('pdpDescText');
+  const toggle  = document.getElementById('pdpDescToggle');
+  const expanded = text.classList.toggle('expanded');
+  toggle.innerHTML = (expanded ? 'Show less' : 'Show more') +
+    `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="${expanded?'18 15 12 9 6 15':'6 9 12 15 18 9'}"/></svg>`;
+}
+
+/* ── Recommendations ── */
+function _renderRecommendations(){
+  const p      = _pdpProduct;
+  const recsEl = document.getElementById('pdpRecs');
+  const grid   = document.getElementById('pdpRecsGrid');
+  const title  = document.getElementById('pdpRecsTitle');
+  if(!recsEl || !grid) return;
+
+  // Filter: same category, exclude current product
+  const recs = PRODUCTS.filter(x =>
+    x.id !== p.id &&
+    (x.cat === p.cat || (x.categories && x.categories.includes(p.cat)))
+  ).slice(0, 8); // max 8, show min 4
+
+  if(recs.length < 1){ recsEl.style.display = 'none'; return; }
+
+  title.textContent = `MORE FROM ${(p.label || 'THIS COLLECTION').toUpperCase()}`;
+  recsEl.style.display = 'block';
+
+  const CART_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>`;
+
+  grid.innerHTML = recs.map(r => {
+    const rDisc    = Math.round((1 - r.price / r.mrp) * 100);
+    const hasImg   = r.images && r.images[0];
+    const bg       = `linear-gradient(135deg,${r.c[0]}22 0%,${r.c[1]}18 100%)`;
+    return `
+      <div class="prod-card" onclick="openPDP('${r.id}');document.getElementById('pdpPage').scrollTop=0">
+        ${r.badge ? `<div class="card-badge">${r.badge}</div>` : ''}
+        <div class="card-img" style="background:${hasImg?'#0d0d0d':bg}">
+          <div class="card-img-overlay"></div>
+          ${cardVisual(r)}
+        </div>
+        <div class="card-info">
+          <div class="card-cat">${r.label}</div>
+          <div class="card-name">${r.name}</div>
+          <div class="card-pricing">
+            <span class="mrp">MRP ₹${r.mrp.toLocaleString('en-IN')}</span>
+            <span class="sale">₹${r.price.toLocaleString('en-IN')}</span>
+            <span class="disc">${rDisc}% OFF</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-atc-full" onclick="event.stopPropagation();openPDP('${r.id}');document.getElementById('pdpPage').scrollTop=0">
+            ${CART_SVG} View &amp; Add
+          </button>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 /* ── Thumbnail navigation ── */
