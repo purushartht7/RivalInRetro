@@ -596,6 +596,354 @@ img{max-width:100%;height:auto;object-fit:contain;}
 }
 .upsell-dismiss:hover{border-color:var(--muted);color:var(--muted);}
 @media(max-width:768px){.upsell-popup{bottom:4rem;}}
+
+/* ══════════════════════════════════════════════════
+   PRODUCT DETAIL PAGE (PDP)
+══════════════════════════════════════════════════ */
+
+/* Full-page overlay */
+.pdp-page{
+  position:fixed;inset:0;z-index:350;
+  background:var(--bg);
+  overflow-y:auto;overflow-x:hidden;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s ease;
+}
+.pdp-page.open{opacity:1;pointer-events:all;}
+
+/* PDP nav bar */
+.pdp-nav{
+  position:sticky;top:0;z-index:10;
+  background:rgba(7,7,7,.96);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  height:64px;padding:0 2rem;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  flex-shrink:0;
+}
+.pdp-back{
+  display:flex;align-items:center;gap:.55rem;
+  background:none;border:1px solid var(--border);
+  color:var(--muted);padding:.45rem 1rem;
+  font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:600;
+  letter-spacing:.5px;text-transform:uppercase;cursor:pointer;
+  transition:all .2s;
+}
+.pdp-back:hover{border-color:var(--gold);color:var(--gold);}
+.pdp-nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:3px;color:var(--text);}
+.pdp-nav-logo em{color:var(--gold);font-style:normal;}
+.pdp-nav-right{display:flex;gap:.5rem;}
+
+/* Breadcrumb */
+.pdp-crumb{
+  max-width:1300px;margin:0 auto;
+  padding:.75rem 2rem;
+  font-size:.68rem;color:var(--dim);
+  display:flex;align-items:center;gap:.45rem;
+}
+.pdp-crumb a{color:var(--dim);text-decoration:none;cursor:pointer;transition:color .15s;}
+.pdp-crumb a:hover{color:var(--gold);}
+.pdp-crumb span{color:var(--muted);}
+
+/* Two-column layout */
+.pdp-layout{
+  max-width:1300px;margin:0 auto;
+  padding:1.5rem 2rem 5rem;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:3.5rem;align-items:start;
+}
+
+/* ── LEFT: Gallery ── */
+.pdp-gallery{position:sticky;top:64px;}
+.pdp-main-wrap{
+  position:relative;
+  aspect-ratio:1/1;
+  background:#0d0d0d;
+  border:1px solid var(--border);
+  overflow:hidden;
+  cursor:zoom-in;
+}
+.pdp-main-img{
+  width:100%;height:100%;
+  object-fit:contain;
+  display:block;
+  transition:opacity .2s;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+.pdp-no-img{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* Hover zoom lens — desktop only */
+.pdp-zoom-lens{
+  position:absolute;
+  width:120px;height:120px;
+  border:2px solid var(--gold);
+  background:rgba(200,168,75,.08);
+  pointer-events:none;
+  display:none;
+  z-index:5;
+  cursor:none;
+}
+.pdp-zoom-result{
+  position:absolute;top:0;right:calc(-100% - 16px);
+  width:100%;aspect-ratio:1/1;
+  border:1px solid var(--border);
+  background:#0d0d0d no-repeat;
+  background-size:0;
+  display:none;
+  z-index:6;
+  pointer-events:none;
+  overflow:hidden;
+}
+@media(hover:hover) and (pointer:fine){
+  .pdp-main-wrap:hover .pdp-zoom-lens{display:block;}
+  .pdp-main-wrap:hover .pdp-zoom-result{display:block;}
+}
+
+/* Image nav arrows over main image */
+.pdp-img-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:4;
+  background:rgba(0,0,0,.55);border:1px solid var(--border-light);
+  color:var(--text);width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:1.3rem;transition:all .18s;user-select:none;
+}
+.pdp-img-arrow:hover{background:var(--gold);color:#000;border-color:var(--gold);}
+.pdp-img-arrow.l{left:8px;}
+.pdp-img-arrow.r{right:8px;}
+.pdp-img-arrow.hidden{display:none;}
+
+/* Thumbnails */
+.pdp-thumbs{
+  display:flex;gap:.5rem;margin-top:.65rem;
+  overflow-x:auto;padding-bottom:.25rem;
+  scrollbar-width:thin;scrollbar-color:var(--border-light) transparent;
+}
+.pdp-thumb{
+  width:72px;height:72px;flex-shrink:0;
+  border:1.5px solid var(--border);
+  background:#0d0d0d;cursor:pointer;
+  overflow:hidden;transition:border-color .18s;
+  display:flex;align-items:center;justify-content:center;
+}
+.pdp-thumb img{width:100%;height:100%;object-fit:contain;padding:4px;}
+.pdp-thumb.active{border-color:var(--gold);}
+.pdp-thumb:hover{border-color:var(--border-light);}
+
+/* Click-to-fullscreen hint */
+.pdp-zoom-hint{
+  position:absolute;bottom:10px;right:10px;z-index:4;
+  background:rgba(0,0,0,.6);color:var(--muted);
+  font-size:.58rem;letter-spacing:1px;text-transform:uppercase;
+  padding:.25rem .6rem;pointer-events:none;
+  display:flex;align-items:center;gap:.3rem;
+}
+
+/* ── RIGHT: Info ── */
+.pdp-info{padding-top:.5rem;}
+.pdp-cat{font-size:.62rem;color:var(--gold);text-transform:uppercase;letter-spacing:3px;margin-bottom:.5rem;}
+.pdp-name{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.5rem,2.5vw,2.1rem);
+  font-weight:700;line-height:1.25;margin-bottom:1.5rem;
+}
+.pdp-pricing-row{display:flex;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:.35rem;}
+.pdp-price{font-size:2.2rem;font-weight:700;}
+.pdp-mrp{font-size:.95rem;color:var(--dim);text-decoration:line-through;}
+.pdp-disc{
+  background:var(--gold-dim);color:var(--gold);
+  font-size:.72rem;font-weight:800;letter-spacing:.5px;
+  padding:.2rem .6rem;
+}
+.pdp-save{font-size:.8rem;color:#4caf8a;margin-bottom:1.6rem;}
+
+/* Offer pills row */
+.pdp-offers{
+  display:flex;gap:.5rem;flex-wrap:wrap;
+  margin-bottom:1.8rem;
+  padding:.9rem 1rem;
+  background:rgba(200,168,75,.05);
+  border:1px solid rgba(200,168,75,.15);
+}
+.pdp-offer-pill{
+  display:flex;align-items:center;gap:.35rem;
+  font-size:.7rem;color:var(--muted);
+}
+.pdp-offer-pill strong{color:var(--text);font-weight:700;}
+.pdp-offer-pill::after{content:'·';color:var(--border-light);margin-left:.35rem;}
+.pdp-offer-pill:last-child::after{display:none;}
+
+.pdp-label{font-size:.65rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:.65rem;}
+
+/* Sizes */
+.pdp-size-row{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1.8rem;}
+.pdp-sz{
+  min-width:52px;height:52px;
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:.85rem;font-weight:600;cursor:pointer;
+  transition:all .2s;display:flex;align-items:center;justify-content:center;
+}
+.pdp-sz:hover{border-color:var(--gold);color:var(--gold);}
+.pdp-sz.on{background:var(--gold);border-color:var(--gold);color:#000;}
+
+/* Qty */
+.pdp-qty-row{display:flex;align-items:center;gap:0;margin-bottom:1.8rem;}
+.pdp-qb{
+  width:48px;height:48px;background:var(--surface);
+  border:1px solid var(--border);color:var(--text);
+  font-size:1.3rem;cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.pdp-qb:hover{background:var(--gold);border-color:var(--gold);color:#000;}
+.pdp-qval{
+  width:60px;height:48px;
+  background:var(--card);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:1rem;
+}
+
+/* Total */
+.pdp-total-row{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--surface);border:1px solid var(--border);
+  padding:1rem 1.3rem;margin-bottom:1rem;
+}
+.pdp-total-l{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.pdp-total-v{font-size:1.65rem;font-weight:700;color:var(--gold);}
+
+/* CTA buttons */
+.pdp-btn-atc{
+  width:100%;background:var(--card);color:var(--text);
+  border:1px solid var(--border-light);
+  padding:1rem;margin-bottom:.6rem;
+  font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;
+  letter-spacing:.5px;text-transform:uppercase;
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:.55rem;
+}
+.pdp-btn-atc:hover{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.pdp-btn-wa{
+  width:100%;background:var(--wa);color:#fff;border:none;
+  padding:1.1rem;
+  font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:800;
+  letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:.6rem;
+}
+.pdp-btn-wa:hover{background:var(--wa-dark);}
+.pdp-note{font-size:.68rem;color:var(--dim);text-align:center;margin-top:.75rem;line-height:1.6;}
+.pdp-desc{
+  margin-top:1.8rem;padding-top:1.5rem;
+  border-top:1px solid var(--border);
+  font-size:.85rem;color:var(--muted);line-height:1.8;
+}
+
+/* Offers / trust block inside PDP */
+.pdp-trust{
+  margin-top:2.5rem;padding-top:2rem;
+  border-top:1px solid var(--border);
+}
+.pdp-trust-title{
+  font-size:.62rem;color:var(--gold);text-transform:uppercase;
+  letter-spacing:3px;margin-bottom:1rem;
+}
+.pdp-trust-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  border:1px solid var(--border);background:var(--border);gap:1px;
+}
+.pdp-trust-item{
+  background:var(--card);padding:1.2rem 1rem;text-align:center;
+}
+.pdp-trust-icon{font-size:1.4rem;margin-bottom:.5rem;}
+.pdp-trust-name{font-family:'Playfair Display',serif;font-size:.88rem;margin-bottom:.25rem;}
+.pdp-trust-text{font-size:.72rem;color:var(--muted);line-height:1.6;}
+
+/* ── FULLSCREEN VIEWER ── */
+.fs-viewer{
+  position:fixed;inset:0;z-index:900;
+  background:rgba(0,0,0,.97);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+  touch-action:none;
+}
+.fs-viewer.open{opacity:1;pointer-events:all;}
+.fs-img-wrap{
+  position:relative;
+  width:100vw;height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.fs-img{
+  max-width:90vw;max-height:90vh;
+  object-fit:contain;
+  cursor:grab;
+  transform-origin:center;
+  transition:none;
+  user-select:none;
+  -webkit-user-drag:none;
+  will-change:transform;
+}
+.fs-img.dragging{cursor:grabbing;}
+.fs-close{
+  position:fixed;top:1rem;right:1.2rem;z-index:10;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  color:#fff;width:42px;height:42px;border-radius:50%;
+  font-size:1.2rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .18s;
+}
+.fs-close:hover{background:rgba(255,255,255,.22);}
+.fs-arrow{
+  position:fixed;top:50%;transform:translateY(-50%);z-index:10;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  color:#fff;width:44px;height:44px;border-radius:50%;
+  font-size:1.4rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .18s;
+}
+.fs-arrow:hover{background:rgba(255,255,255,.2);}
+.fs-arrow.l{left:1rem;}
+.fs-arrow.r{right:1rem;}
+.fs-arrow.hidden{display:none;}
+.fs-dots{
+  position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
+  display:flex;gap:6px;z-index:10;
+}
+.fs-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .2s;}
+.fs-dot.active{background:#fff;transform:scale(1.3);}
+.fs-zoom-hint{
+  position:fixed;top:1rem;left:50%;transform:translateX(-50%);
+  font-size:.62rem;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;
+  pointer-events:none;z-index:10;
+}
+.fs-no-img{color:rgba(255,255,255,.3);font-size:4rem;text-align:center;}
+
+/* ── RESPONSIVE — PDP ── */
+@media(max-width:900px){
+  .pdp-layout{grid-template-columns:1fr;gap:2rem;padding:1rem 1.2rem 4rem;}
+  .pdp-gallery{position:static;}
+  .pdp-zoom-result{display:none!important;}
+  .pdp-zoom-lens{display:none!important;}
+  .pdp-trust-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:600px){
+  .pdp-nav{padding:0 .9rem;height:56px;}
+  .pdp-crumb{padding:.5rem .9rem;}
+  .pdp-layout{padding:.75rem .9rem 3.5rem;}
+  .pdp-name{font-size:1.3rem;margin-bottom:1rem;}
+  .pdp-price{font-size:1.8rem;}
+  .pdp-sz{min-width:44px;height:44px;font-size:.8rem;}
+  .pdp-thumb{width:58px;height:58px;}
+  .pdp-trust-grid{grid-template-columns:1fr 1fr;}
+  .pdp-trust-item{padding:.85rem .65rem;}
+  .fs-arrow{width:36px;height:36px;font-size:1.1rem;}
+}
 </style>
 </head>
 <body>
@@ -837,6 +1185,154 @@ img{max-width:100%;height:auto;object-fit:contain;}
 
 <!-- NUDGE TOAST -->
 <div class="cart-nudge" id="cartNudge"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     PRODUCT DETAIL PAGE
+═══════════════════════════════════════════════════ -->
+<div class="pdp-page" id="pdpPage">
+
+  <!-- PDP Nav -->
+  <nav class="pdp-nav">
+    <button class="pdp-back" onclick="closePDP()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </button>
+    <div class="pdp-nav-logo">RIVAL <em>IN</em> RETRO</div>
+    <div class="pdp-nav-right">
+      <button class="cart-btn" onclick="openCart()" aria-label="Cart" style="width:36px;height:36px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span class="cart-badge" id="pdpCartBadge">0</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Breadcrumb -->
+  <div class="pdp-crumb">
+    <a onclick="closePDP()">Home</a>
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    <a onclick="closePDP();document.getElementById('shop').scrollIntoView({behavior:'smooth'})">Shop</a>
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+    <span id="pdpCrumbCat"></span>
+  </div>
+
+  <!-- Two-column layout -->
+  <div class="pdp-layout">
+
+    <!-- LEFT: Gallery -->
+    <div class="pdp-gallery" id="pdpGallery">
+      <div class="pdp-main-wrap" id="pdpMainWrap">
+        <!-- Arrows -->
+        <button class="pdp-img-arrow l hidden" id="pdpImgPrev" onclick="pdpThumbGo(_pdpThumbIdx-1)">&#8249;</button>
+        <button class="pdp-img-arrow r hidden" id="pdpImgNext" onclick="pdpThumbGo(_pdpThumbIdx+1)">&#8250;</button>
+        <!-- Zoom lens (desktop hover) -->
+        <div class="pdp-zoom-lens" id="pdpZoomLens"></div>
+        <!-- Zoom result (desktop hover) -->
+        <div class="pdp-zoom-result" id="pdpZoomResult"></div>
+        <!-- Main image / SVG fallback -->
+        <img class="pdp-main-img" id="pdpMainImg" src="" alt="" onclick="openFSViewer(_pdpThumbIdx)">
+        <div class="pdp-no-img" id="pdpNoImg" style="display:none" onclick="openFSViewer(0)"></div>
+        <!-- Zoom hint -->
+        <div class="pdp-zoom-hint">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          Click to zoom
+        </div>
+      </div>
+      <!-- Thumbnails -->
+      <div class="pdp-thumbs" id="pdpThumbs"></div>
+    </div>
+
+    <!-- RIGHT: Product Info -->
+    <div class="pdp-info">
+      <div class="pdp-cat" id="pdpCat"></div>
+      <div class="pdp-name" id="pdpName"></div>
+
+      <div class="pdp-pricing-row">
+        <span class="pdp-price" id="pdpPrice"></span>
+        <span class="pdp-mrp" id="pdpMrp"></span>
+        <span class="pdp-disc" id="pdpDisc"></span>
+      </div>
+      <div class="pdp-save" id="pdpSave"></div>
+
+      <!-- Offer highlights -->
+      <div class="pdp-offers">
+        <div class="pdp-offer-pill"><strong>₹50 OFF</strong>&nbsp;each on 2+ jerseys</div>
+        <div class="pdp-offer-pill"><strong>Free</strong>&nbsp;delivery</div>
+        <div class="pdp-offer-pill"><strong>WhatsApp</strong>&nbsp;order</div>
+      </div>
+
+      <div class="pdp-label">Choose Size</div>
+      <div class="pdp-size-row" id="pdpSizeRow"></div>
+
+      <div class="pdp-label">Quantity</div>
+      <div class="pdp-qty-row">
+        <button class="pdp-qb" onclick="pdpChQty(-1)">−</button>
+        <div class="pdp-qval" id="pdpQval">1</div>
+        <button class="pdp-qb" onclick="pdpChQty(1)">+</button>
+      </div>
+
+      <div class="pdp-total-row">
+        <span class="pdp-total-l">Item Total</span>
+        <span class="pdp-total-v" id="pdpTotal">₹0</span>
+      </div>
+
+      <button class="pdp-btn-atc" onclick="pdpAddToCart()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Add to Cart
+      </button>
+      <button class="pdp-btn-wa" onclick="pdpSendWA()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Order Now on WhatsApp
+      </button>
+      <div class="pdp-note">Add to cart to unlock bundle savings — ₹50 OFF each on 2+ jerseys.</div>
+
+      <!-- Product description -->
+      <div class="pdp-desc" id="pdpDesc" style="display:none"></div>
+
+      <!-- Trust block -->
+      <div class="pdp-trust">
+        <div class="pdp-trust-title">The Rival Promise</div>
+        <div class="pdp-trust-grid">
+          <div class="pdp-trust-item">
+            <div class="pdp-trust-icon">🧵</div>
+            <div class="pdp-trust-name">Premium Quality</div>
+            <div class="pdp-trust-text">Fan-edition grade, breathable and built to last</div>
+          </div>
+          <div class="pdp-trust-item">
+            <div class="pdp-trust-icon">🔥</div>
+            <div class="pdp-trust-name">Bundle Savings</div>
+            <div class="pdp-trust-text">₹50 OFF each jersey when you buy 2 or more</div>
+          </div>
+          <div class="pdp-trust-item">
+            <div class="pdp-trust-icon">💬</div>
+            <div class="pdp-trust-name">WhatsApp Order</div>
+            <div class="pdp-trust-text">No complex checkout — fast, personal, human</div>
+          </div>
+          <div class="pdp-trust-item">
+            <div class="pdp-trust-icon">✈️</div>
+            <div class="pdp-trust-name">Free Delivery</div>
+            <div class="pdp-trust-text">Ships free across India — no minimum order</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     FULLSCREEN IMAGE VIEWER
+═══════════════════════════════════════════════════ -->
+<div class="fs-viewer" id="fsViewer">
+  <div class="fs-zoom-hint">Scroll to zoom · Drag to pan</div>
+  <button class="fs-close" onclick="closeFSViewer()">✕</button>
+  <button class="fs-arrow l hidden" id="fsArrowL" onclick="fsMove(-1)">&#8249;</button>
+  <button class="fs-arrow r hidden" id="fsArrowR" onclick="fsMove(1)">&#8250;</button>
+  <div class="fs-img-wrap" id="fsImgWrap" onclick="fsBgClick(event)">
+    <img class="fs-img" id="fsImg" src="" alt="">
+    <div class="fs-no-img" id="fsNoImg" style="display:none">⚽</div>
+  </div>
+  <div class="fs-dots" id="fsDots"></div>
+</div>
 
 <!-- PRODUCT MODAL -->
 <div class="overlay" id="overlay" onclick="closeOverlay(event)">
@@ -1106,7 +1602,7 @@ function renderSearchResults(q){
       ${results.map(p=>{
         const img = p.images && p.images[0];
         return `
-          <div class="search-card" onclick="closeSearch();openModal('${p.id}')">
+          <div class="search-card" onclick="closeSearch();openPDP('${p.id}')">
             <div class="search-card-img">
               ${img?`<img src="${img}" alt="${p.name}">`:jerseyArtMini(p.c[0],p.c[1],p.stripes)}
             </div>
@@ -1387,7 +1883,7 @@ function renderGrid(cat='all'){
     const hasImg=p.images&&p.images[0];
     const bg=`linear-gradient(135deg,${p.c[0]}22 0%,${p.c[1]}18 100%)`;
     return `
-      <div class="prod-card" onclick="openModal('${p.id}')">
+      <div class="prod-card" onclick="openPDP('${p.id}')">
         ${p.badge?`<div class="card-badge">${p.badge}</div>`:''}
         <div class="card-img" style="background:${hasImg?'#0d0d0d':bg}">
           <div class="card-img-overlay"></div>
@@ -1403,7 +1899,7 @@ function renderGrid(cat='all'){
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn-atc-full" onclick="event.stopPropagation();openModal('${p.id}')">
+          <button class="btn-atc-full" onclick="event.stopPropagation();openPDP('${p.id}')">
             ${CART_SVG} Add to Cart
           </button>
         </div>
@@ -1509,6 +2005,394 @@ function sendWA(){
 }
 
 // ═══════════════════════════════════════════════════════════
+// PRODUCT DETAIL PAGE — ROUTING + LOGIC
+// ═══════════════════════════════════════════════════════════
+let _pdpProduct = null;
+let _pdpQty     = 1;
+let _pdpSize    = null;
+let _pdpThumbIdx = 0;
+let _pdpImgs    = [];
+
+/* ── Slug helper ── */
+function makeSlug(str){ return (str||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+
+/* ── Open PDP ── */
+function openPDP(id){
+  const p = PRODUCTS.find(x => x.id === id);
+  if(!p) return;
+
+  _pdpProduct = p;
+  _pdpQty     = 1;
+  _pdpSize    = null;
+  _pdpThumbIdx = 0;
+  _pdpImgs    = (p.images && p.images.length) ? p.images : [];
+
+  // URL routing — hash-based, works without a server
+  const slug = makeSlug(p.name) || p.id;
+  history.pushState({pdpId: id}, p.name, `#product/${slug}`);
+  document.title = `${p.name} — Rival in Retro`;
+
+  _renderPDP();
+
+  const page = document.getElementById('pdpPage');
+  page.scrollTop = 0;
+  page.classList.add('open');
+  document.body.style.overflow = 'hidden'; // lock body scroll
+}
+
+/* ── Close PDP ── */
+function closePDP(){
+  document.getElementById('pdpPage').classList.remove('open');
+  document.body.style.overflow = '';
+  document.title = 'Rival in Retro — Premium Fan Jerseys';
+  history.pushState({}, '', location.pathname + location.search);
+  _pdpProduct = null;
+}
+
+/* ── Render PDP content ── */
+function _renderPDP(){
+  const p = _pdpProduct;
+  const save = p.mrp - p.price;
+  const disc = Math.round(save / p.mrp * 100);
+
+  // Breadcrumb
+  document.getElementById('pdpCrumbCat').textContent = p.label;
+
+  // Info
+  document.getElementById('pdpCat').textContent   = p.label;
+  document.getElementById('pdpName').textContent  = p.name;
+  document.getElementById('pdpPrice').textContent = `₹${p.price.toLocaleString('en-IN')}`;
+  document.getElementById('pdpMrp').textContent   = `MRP ₹${p.mrp.toLocaleString('en-IN')}`;
+  document.getElementById('pdpDisc').textContent  = `${disc}% OFF`;
+  document.getElementById('pdpSave').textContent  = `You save ₹${save.toLocaleString('en-IN')} on this item`;
+
+  // Desc
+  const descEl = document.getElementById('pdpDesc');
+  descEl.style.display = p.desc ? 'block' : 'none';
+  descEl.textContent   = p.desc || '';
+
+  // Gallery
+  const mainImg   = document.getElementById('pdpMainImg');
+  const noImg     = document.getElementById('pdpNoImg');
+  const mainWrap  = document.getElementById('pdpMainWrap');
+
+  if(_pdpImgs.length){
+    mainImg.src   = _pdpImgs[0];
+    mainImg.alt   = p.name;
+    mainImg.style.display = 'block';
+    noImg.style.display   = 'none';
+  } else {
+    mainImg.style.display = 'none';
+    noImg.style.display   = 'flex';
+    noImg.innerHTML = jerseyArt(p.c[0], p.c[1], p.stripes, 1.4);
+    mainWrap.style.background = `linear-gradient(135deg,${p.c[0]}22,${p.c[1]}18)`;
+  }
+
+  // Main image arrows
+  document.getElementById('pdpImgPrev').classList.toggle('hidden', _pdpImgs.length <= 1);
+  document.getElementById('pdpImgNext').classList.toggle('hidden', _pdpImgs.length <= 1);
+
+  // Thumbnails
+  const thumbsEl = document.getElementById('pdpThumbs');
+  if(_pdpImgs.length > 1){
+    thumbsEl.innerHTML = _pdpImgs.map((src,i) =>
+      `<div class="pdp-thumb ${i===0?'active':''}" onclick="pdpThumbGo(${i})">
+        <img src="${src}" alt="Image ${i+1}" loading="lazy">
+      </div>`
+    ).join('');
+  } else {
+    thumbsEl.innerHTML = '';
+  }
+
+  // Sizes
+  const sizes = (p.sizes && p.sizes.length) ? p.sizes : ['S','M','L','XL'];
+  document.getElementById('pdpSizeRow').innerHTML = sizes.map(s =>
+    `<button class="pdp-sz" onclick="pdpPickSize('${s}',this)">${s}</button>`
+  ).join('');
+
+  // Qty + total
+  document.getElementById('pdpQval').textContent = 1;
+  _pdpUpdateTotal();
+
+  // Badge update
+  _syncPdpCartBadge();
+
+  // Init hover zoom
+  _initHoverZoom();
+}
+
+/* ── Thumbnail navigation ── */
+function pdpThumbGo(idx){
+  if(!_pdpImgs.length) return;
+  _pdpThumbIdx = Math.max(0, Math.min(idx, _pdpImgs.length - 1));
+  document.getElementById('pdpMainImg').src = _pdpImgs[_pdpThumbIdx];
+  document.querySelectorAll('.pdp-thumb').forEach((t,i) => t.classList.toggle('active', i === _pdpThumbIdx));
+}
+
+/* ── Size + Qty ── */
+function pdpPickSize(s, el){
+  document.querySelectorAll('.pdp-sz').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  _pdpSize = s;
+}
+function pdpChQty(d){
+  _pdpQty = Math.max(1, Math.min(10, _pdpQty + d));
+  document.getElementById('pdpQval').textContent = _pdpQty;
+  _pdpUpdateTotal();
+}
+function _pdpUpdateTotal(){
+  if(!_pdpProduct) return;
+  document.getElementById('pdpTotal').textContent = `₹${(_pdpProduct.price * _pdpQty).toLocaleString('en-IN')}`;
+}
+
+/* ── Add to cart ── */
+function pdpAddToCart(){
+  if(!_pdpSize){ showNudge('Please select a size first!'); return; }
+  cartAdd(_pdpProduct, _pdpSize, _pdpQty);
+  bounceCartIcon();
+  _syncPdpCartBadge();
+  const totalUnits = cartCount();
+  if(totalUnits === 1){
+    showUpsellPopup();
+    showNudge('✓ Added! Add 1 more for ₹100 OFF 🔥');
+  } else if(totalUnits === 2){
+    showNudge('🎉 ₹100 OFF unlocked! ₹50 per jersey saved');
+  } else {
+    showNudge(`✓ ${_pdpProduct.name} (${_pdpSize}) added`);
+  }
+}
+
+function _syncPdpCartBadge(){
+  const c = cartCount();
+  const b = document.getElementById('pdpCartBadge');
+  if(b){ b.textContent = c; b.classList.toggle('visible', c > 0); }
+}
+
+/* ── Direct WA order from PDP ── */
+function pdpSendWA(){
+  if(!_pdpSize){ showNudge('Please select a size first!'); return; }
+  const p     = _pdpProduct;
+  const brand = window._brand || 'Rival in Retro';
+  const total = p.price * _pdpQty;
+  const msg   = `Hi ${brand}! 👋\n\nI'd like to place an order:\n\n🛒 *ORDER DETAILS*\n━━━━━━━━━━━━━━━━━━━━\n📌 Jersey: *${p.name}*\n🏷 Category: ${p.label}\n📏 Size: *${_pdpSize}*\n🔢 Quantity: *${_pdpQty}*\n💰 Price: ₹${p.price.toLocaleString('en-IN')} × ${_pdpQty}\n🚚 Delivery: ~~₹${DELIVERY_SAVING}~~ → FREE\n🎉 You Save: ₹${DELIVERY_SAVING} (free delivery)\n✅ *Final Payable Amount: ₹${total.toLocaleString('en-IN')}*\n━━━━━━━━━━━━━━━━━━━━\n\nPlease confirm availability and share payment details. Thank you!`;
+  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+/* ── Hash routing ── */
+function _handleHashRoute(){
+  const hash = location.hash;
+  if(hash.startsWith('#product/')){
+    const slug = hash.replace('#product/','');
+    // Wait for products to load, then open
+    const tryOpen = () => {
+      if(!PRODUCTS.length){ setTimeout(tryOpen, 150); return; }
+      const p = PRODUCTS.find(x => makeSlug(x.name) === slug || x.id === slug);
+      if(p) openPDP(p.id);
+    };
+    tryOpen();
+  } else {
+    closePDP();
+  }
+}
+
+window.addEventListener('popstate', e => {
+  if(location.hash.startsWith('#product/')){
+    _handleHashRoute();
+  } else {
+    document.getElementById('pdpPage').classList.remove('open');
+    document.body.style.overflow = '';
+    document.title = 'Rival in Retro — Premium Fan Jerseys';
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// HOVER ZOOM — MAGNIFIER LENS (desktop only)
+// ═══════════════════════════════════════════════════════════
+function _initHoverZoom(){
+  const wrap   = document.getElementById('pdpMainWrap');
+  const img    = document.getElementById('pdpMainImg');
+  const lens   = document.getElementById('pdpZoomLens');
+  const result = document.getElementById('pdpZoomResult');
+  if(!wrap || !img || !lens || !result) return;
+
+  const ZOOM = 2.5; // magnification
+
+  function onMove(e){
+    const rect  = wrap.getBoundingClientRect();
+    const ex    = e.clientX - rect.left;
+    const ey    = e.clientY - rect.top;
+    const lw    = lens.offsetWidth;
+    const lh    = lens.offsetHeight;
+
+    let lx = ex - lw/2;
+    let ly = ey - lh/2;
+    lx = Math.max(0, Math.min(lx, rect.width - lw));
+    ly = Math.max(0, Math.min(ly, rect.height - lh));
+
+    lens.style.left = lx + 'px';
+    lens.style.top  = ly + 'px';
+
+    // Result window background
+    const bw = rect.width  * ZOOM;
+    const bh = rect.height * ZOOM;
+    const bx = (lx + lw/2) / rect.width  * bw - result.offsetWidth/2;
+    const by = (ly + lh/2) / rect.height * bh - result.offsetHeight/2;
+    result.style.backgroundImage    = `url('${img.src}')`;
+    result.style.backgroundSize     = `${bw}px ${bh}px`;
+    result.style.backgroundPosition = `-${bx}px -${by}px`;
+  }
+
+  wrap.addEventListener('mousemove', onMove);
+  // Cleanup handled by replacing innerHTML on next openPDP
+}
+
+// ═══════════════════════════════════════════════════════════
+// FULLSCREEN VIEWER — click + zoom + drag + pinch
+// ═══════════════════════════════════════════════════════════
+let _fsImgs    = [];
+let _fsIdx     = 0;
+let _fsScale   = 1;
+let _fsTx      = 0;
+let _fsTy      = 0;
+let _fsDragOn  = false;
+let _fsDragSX  = 0;
+let _fsDragSY  = 0;
+let _fsDragTx  = 0;
+let _fsDragTy  = 0;
+let _fsPinchD  = 0;
+let _fsPinchS  = 1;
+
+function openFSViewer(startIdx){
+  _fsImgs = [..._pdpImgs];
+  _fsIdx  = Math.max(0, Math.min(startIdx, _fsImgs.length - 1));
+  _fsScale = 1; _fsTx = 0; _fsTy = 0;
+  _fsRender();
+  document.getElementById('fsViewer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFSViewer(){
+  document.getElementById('fsViewer').classList.remove('open');
+}
+
+function _fsApplyTransform(){
+  const img = document.getElementById('fsImg');
+  img.style.transform = `translate(${_fsTx}px,${_fsTy}px) scale(${_fsScale})`;
+}
+
+function _fsReset(){
+  _fsScale = 1; _fsTx = 0; _fsTy = 0;
+  _fsApplyTransform();
+}
+
+function _fsRender(){
+  const img   = document.getElementById('fsImg');
+  const noImg = document.getElementById('fsNoImg');
+  if(_fsImgs.length){
+    img.src = _fsImgs[_fsIdx];
+    img.style.display = 'block';
+    noImg.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    noImg.style.display = 'flex';
+  }
+  document.getElementById('fsArrowL').classList.toggle('hidden', _fsImgs.length <= 1);
+  document.getElementById('fsArrowR').classList.toggle('hidden', _fsImgs.length <= 1);
+  const dots = document.getElementById('fsDots');
+  if(_fsImgs.length > 1){
+    dots.innerHTML = _fsImgs.map((_,i) =>
+      `<div class="fs-dot ${i===_fsIdx?'active':''}" onclick="event.stopPropagation();_fsIdx=${i};_fsReset();_fsRender()"></div>`
+    ).join('');
+  } else { dots.innerHTML = ''; }
+  _fsApplyTransform();
+}
+
+function fsMove(dir){
+  _fsIdx = (_fsIdx + dir + _fsImgs.length) % _fsImgs.length;
+  _fsReset(); _fsRender();
+}
+
+function fsBgClick(e){
+  // Only close if clicking the wrap itself (not the image), and not dragging
+  if(e.target === document.getElementById('fsImgWrap') && _fsScale <= 1) closeFSViewer();
+}
+
+// Mouse drag
+const _fsWrap = () => document.getElementById('fsImgWrap');
+document.addEventListener('mousedown', e => {
+  if(!document.getElementById('fsViewer').classList.contains('open')) return;
+  const img = document.getElementById('fsImg');
+  if(e.target !== img) return;
+  _fsDragOn = true; _fsDragSX = e.clientX; _fsDragSY = e.clientY;
+  _fsDragTx = _fsTx; _fsDragTy = _fsTy;
+  img.classList.add('dragging');
+  e.preventDefault();
+});
+document.addEventListener('mousemove', e => {
+  if(!_fsDragOn) return;
+  _fsTx = _fsDragTx + (e.clientX - _fsDragSX);
+  _fsTy = _fsDragTy + (e.clientY - _fsDragSY);
+  _fsApplyTransform();
+});
+document.addEventListener('mouseup', () => {
+  _fsDragOn = false;
+  const img = document.getElementById('fsImg');
+  if(img) img.classList.remove('dragging');
+});
+
+// Scroll wheel zoom
+document.getElementById('fsViewer').addEventListener('wheel', e => {
+  e.preventDefault();
+  const delta  = e.deltaY > 0 ? 0.85 : 1.18;
+  _fsScale = Math.max(1, Math.min(5, _fsScale * delta));
+  if(_fsScale <= 1){ _fsTx = 0; _fsTy = 0; }
+  _fsApplyTransform();
+}, {passive: false});
+
+// Touch — swipe + pinch
+let _fsTouchX = 0, _fsTouchY = 0;
+document.getElementById('fsViewer').addEventListener('touchstart', e => {
+  if(e.touches.length === 1){
+    _fsTouchX = e.touches[0].clientX;
+    _fsTouchY = e.touches[0].clientY;
+    _fsDragSX = e.touches[0].clientX; _fsDragSY = e.touches[0].clientY;
+    _fsDragTx = _fsTx; _fsDragTy = _fsTy;
+  } else if(e.touches.length === 2){
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    _fsPinchD = Math.hypot(dx,dy);
+    _fsPinchS = _fsScale;
+  }
+},{passive:true});
+
+document.getElementById('fsViewer').addEventListener('touchmove', e => {
+  if(e.touches.length === 2){
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const d  = Math.hypot(dx,dy);
+    _fsScale = Math.max(1, Math.min(5, _fsPinchS * (d / _fsPinchD)));
+    if(_fsScale <= 1){ _fsTx = 0; _fsTy = 0; }
+    _fsApplyTransform();
+  } else if(e.touches.length === 1 && _fsScale > 1){
+    _fsTx = _fsDragTx + (e.touches[0].clientX - _fsDragSX);
+    _fsTy = _fsDragTy + (e.touches[0].clientY - _fsDragSY);
+    _fsApplyTransform();
+  }
+},{passive:true});
+
+document.getElementById('fsViewer').addEventListener('touchend', e => {
+  if(e.changedTouches.length === 1 && _fsScale <= 1){
+    const dx = e.changedTouches[0].clientX - _fsTouchX;
+    const dy = e.changedTouches[0].clientY - _fsTouchY;
+    if(Math.abs(dx) > 45 && Math.abs(dy) < 60){
+      fsMove(dx < 0 ? 1 : -1);
+    } else if(Math.abs(dx) < 10 && Math.abs(dy) < 10){
+      closeFSViewer(); // tap to close when not zoomed
+    }
+  }
+},{passive:true});
+
+// ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
 const shimmerCSS=document.createElement('style');
@@ -1520,12 +2404,19 @@ updateCartUI();
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
+    if(document.getElementById('fsViewer').classList.contains('open')){
+      closeFSViewer(); return;
+    }
     document.getElementById('overlay').classList.remove('open');
     closeCart();
     closeSearch();
     closeUpsell();
+    closePDP();
   }
 });
+
+// Handle direct URL loads (bookmarked product pages)
+if(location.hash.startsWith('#product/')){ _handleHashRoute(); }
 </script>
 </body>
 </html>
