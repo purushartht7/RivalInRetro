@@ -644,86 +644,104 @@ img{max-width:100%;height:auto;object-fit:contain;}
 .pdp-crumb a:hover{color:var(--gold);}
 .pdp-crumb span{color:var(--muted);}
 
-/* Two-column layout — 70:30 adidas-style */
+/* Two-column layout — desktop only, applied via media query below */
 .pdp-layout{
-  max-width:none;margin:0;padding:0;
-  display:grid;
-  grid-template-columns:70% 30%;
-  gap:0;align-items:start;
-  min-height:100vh;
+  max-width:none;
+  padding:0;
+  display:block; /* mobile default — grid only at ≥1024px */
 }
 
-/* ── LEFT: Scroll-based image stack ── */
-.pdp-gallery{ position:relative; }
-
-/* Vertical scroll panels — each image is full viewport height */
-.pdp-img-stack{ display:flex;flex-direction:column; }
-.pdp-img-panel{
-  width:100%;height:100vh;
-  overflow:hidden;position:relative;
-  cursor:zoom-in;background:#0d0d0d;
+/* ── LEFT: Gallery ── */
+.pdp-gallery{position:relative;} /* desktop sticky applied below */
+.pdp-main-wrap{
+  position:relative;
+  aspect-ratio:1/1;
+  background:#0d0d0d;
+  border:1px solid var(--border);
+  overflow:hidden;
+  cursor:zoom-in;
 }
-.pdp-img-panel img{
+.pdp-main-img{
   width:100%;height:100%;
-  object-fit:contain;display:block;
-  transition:transform .5s cubic-bezier(.25,.8,.25,1);
-  will-change:transform;
+  object-fit:contain;
+  display:block;
+  transition:opacity .2s;
+  user-select:none;
+  -webkit-user-drag:none;
 }
-@media(hover:hover) and (pointer:fine){
-  .pdp-img-panel:hover img{ transform:scale(1.02); }
-}
-.pdp-img-panel-svg{
+.pdp-no-img{
   width:100%;height:100%;
   display:flex;align-items:center;justify-content:center;
 }
-/* Panel count indicator */
-.pdp-panel-num{
-  position:absolute;bottom:1rem;right:1rem;
-  font-size:.6rem;letter-spacing:1.5px;text-transform:uppercase;
-  color:rgba(255,255,255,.3);pointer-events:none;
+
+/* Hover zoom lens — desktop only */
+.pdp-zoom-lens{
+  position:absolute;
+  width:120px;height:120px;
+  border:2px solid var(--gold);
+  background:rgba(200,168,75,.08);
+  pointer-events:none;
+  display:none;
+  z-index:5;
+  cursor:none;
+}
+.pdp-zoom-result{
+  position:absolute;top:0;right:calc(-100% - 16px);
+  width:100%;aspect-ratio:1/1;
+  border:1px solid var(--border);
+  background:#0d0d0d no-repeat;
+  background-size:0;
+  display:none;
+  z-index:6;
+  pointer-events:none;
+  overflow:hidden;
+}
+@media(hover:hover) and (pointer:fine){
+  .pdp-main-wrap:hover .pdp-zoom-lens{display:block;}
+  .pdp-main-wrap:hover .pdp-zoom-result{display:block;}
 }
 
-/* ── RIGHT: Sticky product info ── */
-.pdp-info{
-  position:sticky;top:64px;
-  height:calc(100vh - 64px);
-  overflow-y:auto;
-  padding:2.2rem 2rem 3rem;
-  border-left:1px solid var(--border);
-  scrollbar-width:thin;
-  scrollbar-color:var(--border-light) transparent;
+/* Image nav arrows over main image */
+.pdp-img-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:4;
+  background:rgba(0,0,0,.55);border:1px solid var(--border-light);
+  color:var(--text);width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:1.3rem;transition:all .18s;user-select:none;
 }
-.pdp-info::-webkit-scrollbar{width:4px;}
-.pdp-info::-webkit-scrollbar-thumb{background:var(--border-light);}
+.pdp-img-arrow:hover{background:var(--gold);color:#000;border-color:var(--gold);}
+.pdp-img-arrow.l{left:8px;}
+.pdp-img-arrow.r{right:8px;}
+.pdp-img-arrow.hidden{display:none;}
 
-/* ── Ratings ── */
-.rating-row{
-  display:flex;align-items:center;gap:.5rem;
-  margin-bottom:.9rem;
+/* Thumbnails */
+.pdp-thumbs{
+  display:flex;gap:.5rem;margin-top:.65rem;
+  overflow-x:auto;padding-bottom:.25rem;
+  scrollbar-width:thin;scrollbar-color:var(--border-light) transparent;
 }
-.rating-stars{
-  display:flex;align-items:center;gap:1px;
-  font-size:.78rem;letter-spacing:.5px;color:#f59e0b;
+.pdp-thumb{
+  width:72px;height:72px;flex-shrink:0;
+  border:1.5px solid var(--border);
+  background:#0d0d0d;cursor:pointer;
+  overflow:hidden;transition:border-color .18s;
+  display:flex;align-items:center;justify-content:center;
 }
-.rating-count{
-  font-size:.68rem;color:var(--muted);
-  border-bottom:1px solid var(--border-light);
-  cursor:default;
-}
-/* Card rating — smaller */
-.card-rating{
+.pdp-thumb img{width:100%;height:100%;object-fit:contain;padding:4px;}
+.pdp-thumb.active{border-color:var(--gold);}
+.pdp-thumb:hover{border-color:var(--border-light);}
+
+/* Click-to-fullscreen hint */
+.pdp-zoom-hint{
+  position:absolute;bottom:10px;right:10px;z-index:4;
+  background:rgba(0,0,0,.6);color:var(--muted);
+  font-size:.58rem;letter-spacing:1px;text-transform:uppercase;
+  padding:.25rem .6rem;pointer-events:none;
   display:flex;align-items:center;gap:.3rem;
-  font-size:.65rem;color:#f59e0b;
-  margin-bottom:.45rem;
 }
-.card-rating-count{ color:var(--muted);font-size:.6rem; }
 
-/* Hidden ref img for FS viewer */
-#pdpMainImg{ display:none; }
-#pdpNoImg{ display:none; }
-/* Keep old arrow/thumb/lens/result IDs hidden — FS viewer refs pdpThumbIdx directly */
-#pdpImgPrev,#pdpImgNext,#pdpZoomLens,#pdpZoomResult,#pdpThumbs{ display:none; }
-
+/* ── RIGHT: Info — default (mobile) ── */
+.pdp-info{padding:1.2rem 1rem 2rem;} /* desktop override below */
 .pdp-cat{font-size:.62rem;color:var(--gold);text-transform:uppercase;letter-spacing:3px;margin-bottom:.5rem;}
 .pdp-name{
   font-family:'Playfair Display',serif;
@@ -967,37 +985,141 @@ img{max-width:100%;height:auto;object-fit:contain;}
 }
 .fs-no-img{color:rgba(255,255,255,.3);font-size:4rem;text-align:center;}
 
-/* ── RESPONSIVE — PDP ── */
-@media(max-width:1024px){
-  .pdp-layout{grid-template-columns:60% 40%;}
-}
-@media(max-width:768px){
-  .pdp-layout{grid-template-columns:1fr;}
-  .pdp-gallery{position:static;}
-  .pdp-img-panel{height:auto;aspect-ratio:1/1;}
+/* ═══════════════════════════════════════════════════
+   DESKTOP PDP: 70/30 collage layout (≥1024px ONLY)
+═══════════════════════════════════════════════════ */
+@media(min-width:1024px){
+
+  /* 70:30 grid — no max-width so images go edge-to-edge */
+  .pdp-layout{
+    display:grid;
+    grid-template-columns:70% 30%;
+    gap:0;
+    align-items:start;
+    min-height:100vh;
+  }
+
+  /* Gallery fills its column */
+  .pdp-gallery{
+    position:relative;
+  }
+
+  /* Hide mobile single-image viewer + thumbnails on desktop */
+  .pdp-main-wrap,
+  .pdp-thumbs{
+    display:none;
+  }
+
+  /* Show desktop collage (hidden by default below) */
+  .pdp-img-collage{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0;
+    padding-bottom:10vh; /* scroll-preview: shows next row */
+  }
+
+  /* Each image cell — 1:1, no border, no gap */
+  .pdp-img-collage-cell{
+    aspect-ratio:1/1;
+    overflow:hidden;
+    background:#0d0d0d;
+    cursor:zoom-in;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+  }
+  .pdp-img-collage-cell img{
+    width:100%;height:100%;
+    object-fit:contain;
+    display:block;
+    transition:transform .2s ease;
+    will-change:transform;
+    user-select:none;
+    -webkit-user-drag:none;
+  }
+  /* Strong hover zoom — transform-origin set by JS mousemove */
+  .pdp-img-collage-cell:hover img{
+    transform:scale(1.8);
+    z-index:2;
+  }
+  /* Full-width single panel for SVG fallback */
+  .pdp-img-collage-cell.full-width{
+    grid-column:1/-1;
+    aspect-ratio:2/1;
+  }
+  /* Fullscreen hint badge on first image */
+  .pdp-collage-hint{
+    position:absolute;bottom:.75rem;right:.75rem;z-index:3;
+    background:rgba(0,0,0,.65);color:var(--muted);
+    font-size:.55rem;letter-spacing:1px;text-transform:uppercase;
+    padding:.22rem .55rem;pointer-events:none;
+    display:flex;align-items:center;gap:.28rem;
+    opacity:0;transition:opacity .2s;
+  }
+  .pdp-img-collage-cell:hover .pdp-collage-hint{opacity:1;}
+
+  /* Sticky right info panel */
   .pdp-info{
-    position:static;height:auto;overflow-y:visible;
-    padding:1.5rem 1rem 2.5rem;border-left:none;
-    border-top:1px solid var(--border);
+    position:sticky;
+    top:64px;
+    height:calc(100vh - 64px);
+    overflow-y:auto;
+    padding:2rem 2.2rem 3rem;
+    border-left:1px solid var(--border);
+    scrollbar-width:thin;
+    scrollbar-color:var(--border-light) transparent;
   }
-  .pdp-trust-grid{grid-template-columns:repeat(2,1fr);}
-  .pdp-recs{padding:2rem 1rem 3rem;}
+  .pdp-info::-webkit-scrollbar{width:4px;}
+  .pdp-info::-webkit-scrollbar-thumb{background:var(--border-light);}
+
+  /* Recs grid — 4 columns */
   .pdp-recs-grid{
-    display:flex;overflow-x:auto;gap:.75rem;
-    scrollbar-width:none;padding-bottom:.5rem;
+    grid-template-columns:repeat(4,1fr);
+    gap:1rem;
   }
-  .pdp-recs-grid::-webkit-scrollbar{display:none;}
-  .pdp-recs-grid .prod-card{min-width:180px;flex-shrink:0;}
+
 }
-@media(max-width:600px){
+
+/* ═══════════════════════════════════════════════════
+   MOBILE SAFETY OVERRIDE (≤1023px)
+   Forces block layout — prevents ANY desktop leakage
+═══════════════════════════════════════════════════ */
+@media(max-width:1023px){
+  .pdp-layout{display:block!important;padding:0!important;}
+  .pdp-img-collage{display:none!important;}  /* hide desktop collage */
+  .pdp-main-wrap{display:block!important;}   /* show mobile single viewer */
+  .pdp-thumbs{display:flex!important;}       /* show mobile thumbnails */
+  .pdp-info{
+    position:relative!important;
+    height:auto!important;
+    overflow-y:visible!important;
+    padding:1.2rem 1rem 2rem!important;
+  }
+}
+
+/* ── Tablet tweaks (769–1023) ── */
+@media(max-width:1023px) and (min-width:769px){
+  .pdp-main-wrap{aspect-ratio:1/1;}
+  .pdp-recs-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
+}
+
+/* ── Mobile tweaks (≤768px) ── */
+@media(max-width:768px){
   .pdp-nav{padding:0 .9rem;height:56px;}
   .pdp-name{font-size:1.3rem;margin-bottom:.75rem;}
   .pdp-price{font-size:1.8rem;}
   .pdp-sz{min-width:44px;height:44px;font-size:.8rem;}
+  .pdp-thumb{width:58px;height:58px;}
   .pdp-trust-grid{grid-template-columns:1fr 1fr;}
   .pdp-trust-item{padding:.85rem .65rem;}
   .fs-arrow{width:36px;height:36px;font-size:1.1rem;}
   .pdp-recs{padding:1.5rem .9rem 2.5rem;}
+  .pdp-recs-grid{
+    display:flex!important;
+    overflow-x:auto;gap:.75rem;
+    scrollbar-width:none;padding-bottom:.5rem;
+  }
+  .pdp-recs-grid::-webkit-scrollbar{display:none;}
+  .pdp-recs-grid .prod-card{min-width:175px;flex-shrink:0;}
 }
 </style>
 </head>
@@ -1267,18 +1389,29 @@ img{max-width:100%;height:auto;object-fit:contain;}
   <!-- Two-column layout -->
   <div class="pdp-layout">
 
-    <!-- LEFT: Scroll-based image stack -->
+    <!-- LEFT: Gallery -->
     <div class="pdp-gallery" id="pdpGallery">
-      <!-- Hidden refs used by FS viewer -->
-      <img id="pdpMainImg" src="" alt="" style="display:none">
-      <div id="pdpNoImg" style="display:none"></div>
-      <button id="pdpImgPrev" style="display:none"></button>
-      <button id="pdpImgNext" style="display:none"></button>
-      <div id="pdpZoomLens" style="display:none"></div>
-      <div id="pdpZoomResult" style="display:none"></div>
-      <div id="pdpThumbs" style="display:none"></div>
-      <!-- Vertical scroll image panels -->
-      <div class="pdp-img-stack" id="pdpImgStack"></div>
+      <div class="pdp-main-wrap" id="pdpMainWrap">
+        <!-- Arrows -->
+        <button class="pdp-img-arrow l hidden" id="pdpImgPrev" onclick="pdpThumbGo(_pdpThumbIdx-1)">&#8249;</button>
+        <button class="pdp-img-arrow r hidden" id="pdpImgNext" onclick="pdpThumbGo(_pdpThumbIdx+1)">&#8250;</button>
+        <!-- Zoom lens (desktop hover) -->
+        <div class="pdp-zoom-lens" id="pdpZoomLens"></div>
+        <!-- Zoom result (desktop hover) -->
+        <div class="pdp-zoom-result" id="pdpZoomResult"></div>
+        <!-- Main image / SVG fallback -->
+        <img class="pdp-main-img" id="pdpMainImg" src="" alt="" onclick="openFSViewer(_pdpThumbIdx)">
+        <div class="pdp-no-img" id="pdpNoImg" style="display:none" onclick="openFSViewer(0)"></div>
+        <!-- Zoom hint -->
+        <div class="pdp-zoom-hint">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          Click to zoom
+        </div>
+      </div>
+      <!-- Thumbnails (mobile) -->
+      <div class="pdp-thumbs" id="pdpThumbs"></div>
+      <!-- Desktop collage (shown ≥1024px via CSS, hidden on mobile) -->
+      <div class="pdp-img-collage" id="pdpImgCollage" style="display:none"></div>
     </div>
 
     <!-- RIGHT: Product Info — strict order -->
@@ -1300,12 +1433,6 @@ img{max-width:100%;height:auto;object-fit:contain;}
 
       <!-- 3. Product Title -->
       <div class="pdp-name" id="pdpName"></div>
-
-      <!-- 3b. Rating -->
-      <div class="rating-row" id="pdpRatingRow">
-        <div class="rating-stars" id="pdpRatingStars">⭐ 4.9</div>
-        <div class="rating-count" id="pdpRatingCount">(124 reviews)</div>
-      </div>
 
       <!-- 4. Price + disc -->
       <div class="pdp-pricing-row">
@@ -1372,11 +1499,11 @@ img{max-width:100%;height:auto;object-fit:contain;}
         <div class="pdp-desc-text" id="pdpDescText"></div>
         <button class="pdp-desc-toggle" id="pdpDescToggle" onclick="togglePdpDesc()">
           Show more
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="pdpDescChevron"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
       </div>
 
-      <!-- 13. Rival Promise -->
+      <!-- 13. Rival Promise — updated text -->
       <div class="pdp-trust" style="margin-top:1.8rem">
         <div class="pdp-trust-title">The Rival Promise</div>
         <div class="pdp-trust-grid">
@@ -1407,7 +1534,7 @@ img{max-width:100%;height:auto;object-fit:contain;}
 
   </div><!-- /pdp-layout -->
 
-  <!-- 14. Recommendations -->
+  <!-- 14. Recommendations — same category, dynamic, excludes current -->
   <div class="pdp-recs" id="pdpRecs" style="display:none">
     <div class="pdp-recs-eyebrow">You May Also Like</div>
     <div class="pdp-recs-title" id="pdpRecsTitle">MORE FROM THIS COLLECTION</div>
@@ -1979,7 +2106,6 @@ function renderGrid(cat='all'){
     const disc=Math.round((1-p.price/p.mrp)*100);
     const hasImg=p.images&&p.images[0];
     const bg=`linear-gradient(135deg,${p.c[0]}22 0%,${p.c[1]}18 100%)`;
-    const {rating,reviews} = _getProductRating(p.id);
     return `
       <div class="prod-card" onclick="openPDP('${p.id}')">
         ${p.badge?`<div class="card-badge">${p.badge}</div>`:''}
@@ -1990,7 +2116,6 @@ function renderGrid(cat='all'){
         <div class="card-info">
           <div class="card-cat">${p.label}</div>
           <div class="card-name">${p.name}</div>
-          <div class="card-rating">⭐ ${rating} <span class="card-rating-count">(${reviews})</span></div>
           <div class="card-pricing">
             <span class="mrp">MRP ₹${p.mrp.toLocaleString('en-IN')}</span>
             <span class="sale">₹${p.price.toLocaleString('en-IN')}</span>
@@ -2163,88 +2288,85 @@ function closePDP(){
   _pdpProduct = null;
 }
 
-/* ── Ratings helper — deterministic per product ID ── */
-function _getProductRating(id){
-  let h = 0;
-  for(let i = 0; i < id.length; i++) h = (Math.imul(h, 31) + id.charCodeAt(i)) | 0;
-  h = Math.abs(h);
-  const r = h % 100;
-  const rating = r < 10 ? 4.7 : r < 40 ? 4.8 : 4.9;
-  const reviews = 50 + (h % 251);
-  return { rating, reviews };
-}
-
 /* ── Render PDP content ── */
 function _renderPDP(){
   const p = _pdpProduct;
   const save = p.mrp - p.price;
   const disc = Math.round(save / p.mrp * 100);
 
-  // Breadcrumb
+  // Breadcrumb (inside right column)
   const crumb2 = document.getElementById('pdpCrumbCat2');
   if(crumb2) crumb2.textContent = p.label;
 
-  // Badge
+  // Badge from admin (p.badge field)
   const badgeWrap = document.getElementById('pdpBadgeWrap');
   const badgeEl   = document.getElementById('pdpBadge');
   if(p.badge && p.badge.trim()){
-    badgeEl.textContent     = p.badge;
-    badgeWrap.style.display = 'block';
+    badgeEl.textContent      = p.badge;
+    badgeWrap.style.display  = 'block';
+    // Style it based on keyword
     const lower = p.badge.toLowerCase();
     badgeEl.className = 'pdp-badge' + (lower.includes('limit') || lower.includes('sold') ? ' secondary' : '');
   } else {
     badgeWrap.style.display = 'none';
   }
 
-  // Title
-  document.getElementById('pdpName').textContent = p.name;
-
-  // Rating
-  const { rating, reviews } = _getProductRating(p.id);
-  const ratingStars = document.getElementById('pdpRatingStars');
-  const ratingCount = document.getElementById('pdpRatingCount');
-  if(ratingStars) ratingStars.textContent = `⭐ ${rating}`;
-  if(ratingCount) ratingCount.textContent = `(${reviews} reviews)`;
-
-  // Price
+  // Title, price, disc
+  document.getElementById('pdpName').textContent  = p.name;
   document.getElementById('pdpPrice').textContent = `₹${p.price.toLocaleString('en-IN')}`;
   document.getElementById('pdpMrp').textContent   = `MRP ₹${p.mrp.toLocaleString('en-IN')}`;
   document.getElementById('pdpDisc').textContent  = `${disc}% OFF`;
 
-  // Description toggle
+  // Description with toggle (show one line, expand on click)
   const descBlock  = document.getElementById('pdpDescBlock');
   const descText   = document.getElementById('pdpDescText');
   const descToggle = document.getElementById('pdpDescToggle');
   if(p.desc && p.desc.trim()){
-    descText.textContent    = p.desc;
-    descBlock.style.display = 'block';
+    descText.textContent     = p.desc;
+    descBlock.style.display  = 'block';
     descText.classList.remove('expanded');
     descToggle.innerHTML = 'Show more <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
-    const lineH = parseFloat(getComputedStyle(descText).lineHeight) || 22;
-    setTimeout(() => { descToggle.style.display = descText.scrollHeight > lineH * 1.5 ? 'inline-flex' : 'none'; }, 50);
+    // Hide toggle if text is short enough to not need it
+    const lineHeight  = parseFloat(getComputedStyle(descText).lineHeight) || 22;
+    setTimeout(() => {
+      descToggle.style.display = descText.scrollHeight > lineHeight * 1.5 ? 'inline-flex' : 'none';
+    }, 50);
   } else {
     descBlock.style.display = 'none';
   }
 
-  // ── Scroll-panel image stack ──
-  const stack = document.getElementById('pdpImgStack');
-  if(stack){
-    if(_pdpImgs.length){
-      // Keep hidden mainImg in sync for FS viewer
-      document.getElementById('pdpMainImg').src = _pdpImgs[0];
-      stack.innerHTML = _pdpImgs.map((src, i) => `
-        <div class="pdp-img-panel" onclick="_pdpThumbIdx=${i};openFSViewer(${i})">
-          <img src="${src}" alt="${p.name} — image ${i+1}" loading="${i===0?'eager':'lazy'}">
-          ${_pdpImgs.length > 1 ? `<div class="pdp-panel-num">${i+1} / ${_pdpImgs.length}</div>` : ''}
-        </div>`).join('');
-    } else {
-      stack.innerHTML = `
-        <div class="pdp-img-panel pdp-img-panel-svg"
-             style="background:linear-gradient(135deg,${p.c[0]}22,${p.c[1]}18)"
-             onclick="openFSViewer(0)">
-          <div class="pdp-img-panel-svg">${jerseyArt(p.c[0],p.c[1],p.stripes,2)}</div>
-        </div>`;
-    }
+  // Gallery
+  const mainImg  = document.getElementById('pdpMainImg');
+  const noImg    = document.getElementById('pdpNoImg');
+  const mainWrap = document.getElementById('pdpMainWrap');
+
+  if(_pdpImgs.length){
+    mainImg.src   = _pdpImgs[0];
+    mainImg.alt   = p.name;
+    mainImg.style.display = 'block';
+    noImg.style.display   = 'none';
+    mainWrap.style.background = '#0d0d0d';
+  } else {
+    mainImg.style.display = 'none';
+    noImg.style.display   = 'flex';
+    noImg.innerHTML       = jerseyArt(p.c[0], p.c[1], p.stripes, 1.4);
+    mainWrap.style.background = `linear-gradient(135deg,${p.c[0]}22,${p.c[1]}18)`;
+  }
+
+  // Arrows
+  document.getElementById('pdpImgPrev').classList.toggle('hidden', _pdpImgs.length <= 1);
+  document.getElementById('pdpImgNext').classList.toggle('hidden', _pdpImgs.length <= 1);
+
+  // Thumbnails
+  const thumbsEl = document.getElementById('pdpThumbs');
+  if(_pdpImgs.length > 1){
+    thumbsEl.innerHTML = _pdpImgs.map((src,i) =>
+      `<div class="pdp-thumb ${i===0?'active':''}" onclick="pdpThumbGo(${i})">
+        <img src="${src}" alt="Image ${i+1}" loading="lazy">
+      </div>`
+    ).join('');
+  } else {
+    thumbsEl.innerHTML = '';
   }
 
   // Sizes
@@ -2257,8 +2379,17 @@ function _renderPDP(){
   document.getElementById('pdpQval').textContent = 1;
   _pdpUpdateTotal();
 
+  // Badge sync
   _syncPdpCartBadge();
+
+  // Hover zoom
+  _initHoverZoom();
+
+  // Recommendations
   _renderRecommendations();
+
+  // Desktop collage (no-op on mobile — element hidden by CSS)
+  _buildDesktopCollage();
 }
 
 /* ── Description toggle ── */
@@ -2270,7 +2401,7 @@ function togglePdpDesc(){
     `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="${expanded?'18 15 12 9 6 15':'6 9 12 15 18 9'}"/></svg>`;
 }
 
-/* ── Recommendations: 6 same-cat + 10 other-cat, shuffled ── */
+/* ── Recommendations ── */
 function _renderRecommendations(){
   const p      = _pdpProduct;
   const recsEl = document.getElementById('pdpRecs');
@@ -2278,39 +2409,23 @@ function _renderRecommendations(){
   const title  = document.getElementById('pdpRecsTitle');
   if(!recsEl || !grid) return;
 
-  // Fisher-Yates shuffle
-  function shuffle(arr){
-    const a = [...arr];
-    for(let i = a.length-1; i > 0; i--){
-      const j = Math.floor(Math.random()*(i+1));
-      [a[i],a[j]] = [a[j],a[i]];
-    }
-    return a;
-  }
+  // Filter: same category, exclude current product
+  const recs = PRODUCTS.filter(x =>
+    x.id !== p.id &&
+    (x.cat === p.cat || (x.categories && x.categories.includes(p.cat)))
+  ).slice(0, 8); // max 8, show min 4
 
-  const sameCat = shuffle(PRODUCTS.filter(x =>
-    x.id !== p.id && (x.cat === p.cat || (x.categories && x.categories.includes(p.cat)))
-  )).slice(0, 6);
+  if(recs.length < 1){ recsEl.style.display = 'none'; return; }
 
-  const sameCatIds = new Set([p.id, ...sameCat.map(x=>x.id)]);
-
-  const otherCat = shuffle(PRODUCTS.filter(x => !sameCatIds.has(x.id))).slice(0, 10);
-
-  const recs = [...sameCat, ...otherCat];
-  if(!recs.length){ recsEl.style.display = 'none'; return; }
-
-  title.textContent = sameCat.length
-    ? `MORE FROM ${(p.label||'THIS COLLECTION').toUpperCase()} & SIMILAR PICKS`
-    : 'YOU MAY ALSO LIKE';
+  title.textContent = `MORE FROM ${(p.label || 'THIS COLLECTION').toUpperCase()}`;
   recsEl.style.display = 'block';
 
   const CART_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>`;
 
   grid.innerHTML = recs.map(r => {
-    const rDisc  = Math.round((1 - r.price / r.mrp) * 100);
-    const hasImg = r.images && r.images[0];
-    const bg     = `linear-gradient(135deg,${r.c[0]}22 0%,${r.c[1]}18 100%)`;
-    const {rating:rRating, reviews:rReviews} = _getProductRating(r.id);
+    const rDisc    = Math.round((1 - r.price / r.mrp) * 100);
+    const hasImg   = r.images && r.images[0];
+    const bg       = `linear-gradient(135deg,${r.c[0]}22 0%,${r.c[1]}18 100%)`;
     return `
       <div class="prod-card" onclick="openPDP('${r.id}');document.getElementById('pdpPage').scrollTop=0">
         ${r.badge ? `<div class="card-badge">${r.badge}</div>` : ''}
@@ -2321,7 +2436,6 @@ function _renderRecommendations(){
         <div class="card-info">
           <div class="card-cat">${r.label}</div>
           <div class="card-name">${r.name}</div>
-          <div class="card-rating">⭐ ${rRating} <span class="card-rating-count">(${rReviews})</span></div>
           <div class="card-pricing">
             <span class="mrp">MRP ₹${r.mrp.toLocaleString('en-IN')}</span>
             <span class="sale">₹${r.price.toLocaleString('en-IN')}</span>
@@ -2420,6 +2534,67 @@ window.addEventListener('popstate', e => {
     document.title = 'Rival in Retro — Premium Fan Jerseys';
   }
 });
+
+
+// ═══════════════════════════════════════════════════════════
+// DESKTOP COLLAGE — 2-column image grid with cursor-zoom
+// Only visible at ≥1024px (controlled by CSS media query)
+// Mobile: display:none!important via CSS override
+// ═══════════════════════════════════════════════════════════
+function _buildDesktopCollage(){
+  const collage = document.getElementById('pdpImgCollage');
+  if(!collage || !_pdpProduct) return;
+
+  const p    = _pdpProduct;
+  const imgs = _pdpImgs;
+
+  if(!imgs.length){
+    collage.innerHTML = `
+      <div class="pdp-img-collage-cell full-width"
+           style="background:linear-gradient(135deg,${p.c[0]}22,${p.c[1]}18);cursor:default">
+        <div style="transform:scale(1.5)">${jerseyArt(p.c[0],p.c[1],p.stripes)}</div>
+      </div>`;
+    collage.style.display = '';
+    return;
+  }
+
+  const HINT_SVG = `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>`;
+
+  collage.innerHTML = imgs.map((src, i) => `
+    <div class="pdp-img-collage-cell" data-idx="${i}">
+      <img src="${src}" alt="${p.name} — view ${i+1}"
+           loading="${i < 2 ? 'eager' : 'lazy'}"
+           draggable="false">
+      ${i === 0 ? `<div class="pdp-collage-hint">${HINT_SVG} Tap to fullscreen</div>` : ''}
+    </div>`
+  ).join('');
+
+  collage.style.display = '';
+
+  // Cursor-tracking zoom — desktop only (hover:hover + pointer:fine)
+  const isDesktopPointer = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+
+  collage.querySelectorAll('.pdp-img-collage-cell').forEach(cell => {
+    const img = cell.querySelector('img');
+    if(!img) return;
+    const idx = parseInt(cell.dataset.idx, 10);
+
+    // Click opens fullscreen
+    cell.addEventListener('click', () => { _pdpThumbIdx = idx; openFSViewer(idx); });
+
+    if(isDesktopPointer){
+      cell.addEventListener('mousemove', e => {
+        const r = cell.getBoundingClientRect();
+        const x = (((e.clientX - r.left) / r.width)  * 100).toFixed(2);
+        const y = (((e.clientY - r.top)  / r.height) * 100).toFixed(2);
+        img.style.transformOrigin = `${x}% ${y}%`;
+      });
+      cell.addEventListener('mouseleave', () => {
+        setTimeout(() => { img.style.transformOrigin = 'center'; }, 220);
+      });
+    }
+  });
+}
 
 // ═══════════════════════════════════════════════════════════
 // HOVER ZOOM — MAGNIFIER LENS (desktop only)
