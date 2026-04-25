@@ -1121,6 +1121,53 @@ img{max-width:100%;height:auto;object-fit:contain;}
   .pdp-recs-grid::-webkit-scrollbar{display:none;}
   .pdp-recs-grid .prod-card{min-width:175px;flex-shrink:0;}
 }
+
+/* ── Star rating (global — desktop + mobile) ── */
+.card-rating{
+  display:flex;align-items:center;gap:.3rem;
+  font-size:.72rem;color:var(--gold);
+  margin-bottom:.45rem;line-height:1;
+}
+.card-rating-count{color:var(--muted);font-size:.65rem;}
+/* PDP rating */
+.pdp-rating-row{
+  display:none; /* set to flex by JS */
+  align-items:center;gap:.45rem;
+  font-size:.8rem;color:var(--gold);
+  margin-bottom:.9rem;
+}
+.pdp-rating-count{font-size:.7rem;color:var(--muted);}
+
+/* ── MOBILE ONLY: badge + PDP nav ── */
+@media(max-width:768px){
+  /* Badge: move to bottom so it never blocks the jersey image */
+  .card-badge{
+    top:auto!important;
+    bottom:8px!important;
+    left:8px!important;
+    font-size:.58rem!important;
+    padding:.2rem .55rem!important;
+    opacity:.92;
+  }
+
+  /* PDP nav: centered brand, icon-only back button */
+  .pdp-nav{
+    justify-content:center!important;
+    position:relative;
+  }
+  .pdp-back{
+    position:absolute;left:.75rem;
+    padding:.4rem .5rem;
+    border:1px solid var(--border);
+    background:none;
+  }
+  /* Hide "Back" text — keep arrow icon only */
+  .pdp-back-label{display:none;}
+  /* Logo naturally centres because nav is justify-content:center */
+  .pdp-nav-logo{font-size:1.2rem;letter-spacing:2px;}
+  /* Cart stays at far right */
+  .pdp-nav-right{position:absolute;right:.75rem;}
+}
 </style>
 </head>
 <body>
@@ -1383,7 +1430,7 @@ img{max-width:100%;height:auto;object-fit:contain;}
   <nav class="pdp-nav">
     <button class="pdp-back" onclick="closePDP()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
-      Back
+      <span class="pdp-back-label">Back</span>
     </button>
     <div class="pdp-nav-logo">RIVAL <em>IN</em> RETRO</div>
     <div class="pdp-nav-right">
@@ -1441,6 +1488,12 @@ img{max-width:100%;height:auto;object-fit:contain;}
 
       <!-- 3. Product Title -->
       <div class="pdp-name" id="pdpName"></div>
+
+      <!-- 3b. Star rating — populated by JS -->
+      <div class="pdp-rating-row" id="pdpRatingRow">
+        <span id="pdpRatingStar"></span>
+        <span class="pdp-rating-count" id="pdpRatingCount"></span>
+      </div>
 
       <!-- 4. Price + disc -->
       <div class="pdp-pricing-row">
@@ -2100,6 +2153,23 @@ function cardVisual(p){
   return img?`<img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;display:block;padding:.5rem">`:`<div class="jersey-wrap">${jerseyArt(p.c[0],p.c[1],p.stripes)}</div>`;
 }
 
+// ═══════════════════════════════════════════════════════════
+// STAR RATINGS
+// Deterministic per product ID — same product always gets the
+// same rating, different products get different values.
+// Distribution: 80% → 4.9 · 15% → 4.8 · 5% → 4.7
+// ═══════════════════════════════════════════════════════════
+function _getProductRating(id){
+  // djb2 hash of product ID string
+  let h = 5381;
+  for(let i = 0; i < id.length; i++) h = ((h << 5) + h) ^ id.charCodeAt(i);
+  h = Math.abs(h);
+  const bucket = h % 100;                  // 0–99
+  const rating  = bucket < 80 ? 4.9 : bucket < 95 ? 4.8 : 4.7;
+  const reviews = 50 + (h % 251);         // 50–300
+  return { rating, reviews };
+}
+
 function renderGrid(cat='all'){
   _activeTab=cat;
   if(!PRODUCTS.length){showLoadingGrid();return;}
@@ -2114,6 +2184,7 @@ function renderGrid(cat='all'){
     const disc=Math.round((1-p.price/p.mrp)*100);
     const hasImg=p.images&&p.images[0];
     const bg=`linear-gradient(135deg,${p.c[0]}22 0%,${p.c[1]}18 100%)`;
+    const {rating,reviews}=_getProductRating(p.id);
     return `
       <div class="prod-card" onclick="openPDP('${p.id}')">
         ${p.badge?`<div class="card-badge">${p.badge}</div>`:''}
@@ -2124,6 +2195,7 @@ function renderGrid(cat='all'){
         <div class="card-info">
           <div class="card-cat">${p.label}</div>
           <div class="card-name">${p.name}</div>
+          <div class="card-rating">★ ${rating} <span class="card-rating-count">(${reviews}+)</span></div>
           <div class="card-pricing">
             <span class="mrp">MRP ₹${p.mrp.toLocaleString('en-IN')}</span>
             <span class="sale">₹${p.price.toLocaleString('en-IN')}</span>
@@ -2321,6 +2393,16 @@ function _renderPDP(){
 
   // Title, price, disc
   document.getElementById('pdpName').textContent  = p.name;
+
+  // Star rating — deterministic per product
+  const {rating:pdpRating, reviews:pdpReviews} = _getProductRating(p.id);
+  const ratingRow = document.getElementById('pdpRatingRow');
+  if(ratingRow){
+    document.getElementById('pdpRatingStar').textContent  = `★ ${pdpRating}`;
+    document.getElementById('pdpRatingCount').textContent = `(${pdpReviews}+ reviews)`;
+    ratingRow.style.display = 'flex';
+  }
+
   document.getElementById('pdpPrice').textContent = `₹${p.price.toLocaleString('en-IN')}`;
   document.getElementById('pdpMrp').textContent   = `MRP ₹${p.mrp.toLocaleString('en-IN')}`;
   document.getElementById('pdpDisc').textContent  = `${disc}% OFF`;
@@ -2434,6 +2516,7 @@ function _renderRecommendations(){
     const rDisc    = Math.round((1 - r.price / r.mrp) * 100);
     const hasImg   = r.images && r.images[0];
     const bg       = `linear-gradient(135deg,${r.c[0]}22 0%,${r.c[1]}18 100%)`;
+    const {rating:rR, reviews:rV} = _getProductRating(r.id);
     return `
       <div class="prod-card" onclick="openPDP('${r.id}');document.getElementById('pdpPage').scrollTop=0">
         ${r.badge ? `<div class="card-badge">${r.badge}</div>` : ''}
@@ -2444,6 +2527,7 @@ function _renderRecommendations(){
         <div class="card-info">
           <div class="card-cat">${r.label}</div>
           <div class="card-name">${r.name}</div>
+          <div class="card-rating">★ ${rR} <span class="card-rating-count">(${rV}+)</span></div>
           <div class="card-pricing">
             <span class="mrp">MRP ₹${r.mrp.toLocaleString('en-IN')}</span>
             <span class="sale">₹${r.price.toLocaleString('en-IN')}</span>
