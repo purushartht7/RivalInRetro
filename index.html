@@ -1168,6 +1168,125 @@ img{max-width:100%;height:auto;object-fit:contain;}
   .pdp-nav-logo{font-size:1.2rem;letter-spacing:2px;}
   /* Cart stays at far right */
   .pdp-nav-right{position:absolute;right:.75rem;}
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     PRODUCT CARD — MOBILE FIXES
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+  /* 1. IMAGE: full jersey visible, no cropping */
+  .card-img{
+    aspect-ratio:1/1;
+    background:#0d0d0d;
+  }
+  .card-img img{
+    object-fit:contain !important;   /* never crop */
+    padding:.75rem !important;       /* breathing room so jersey doesn't touch edges */
+    width:100%;
+    height:100%;
+  }
+
+  /* 2. CARD BODY: consistent horizontal padding */
+  .card-info{
+    padding:.75rem .85rem .4rem !important;
+  }
+  .card-actions{
+    padding:.4rem .85rem .85rem !important;
+  }
+
+  /* 3. TYPOGRAPHY: 2-line clamp + hierarchy */
+  .card-cat{
+    font-size:.55rem;
+    letter-spacing:2px;
+    margin-bottom:.25rem;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .card-name{
+    font-size:.82rem;
+    line-height:1.4;
+    margin-bottom:.4rem;
+    /* 2-line clamp with ellipsis */
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    min-height:2.3rem;  /* reserves space so cards align evenly */
+  }
+
+  /* 4. RATING + PRICE: clean vertical stack, no overlap */
+  .card-rating{
+    font-size:.68rem;
+    margin-bottom:.3rem;
+    gap:.25rem;
+    flex-wrap:nowrap;
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .card-rating-count{
+    font-size:.62rem;
+    white-space:nowrap;
+  }
+  .card-pricing{
+    display:flex;
+    align-items:center;
+    gap:.3rem;
+    flex-wrap:wrap;
+    row-gap:.15rem;
+  }
+  .mrp{font-size:.66rem;}
+  .sale{font-size:.9rem;font-weight:700;}
+  .disc{font-size:.52rem;padding:.06rem .28rem;}
+
+  /* 5. ATC BUTTON: full-width, clear tap target */
+  .btn-atc-full{
+    font-size:.7rem;
+    padding:.75rem .5rem;
+    width:100%;
+    min-height:38px;   /* touch-safe */
+    letter-spacing:.3px;
+  }
+
+  /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     RECOMMENDATIONS SECTION — MOBILE FIXES
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+  /* 5. SECTION HEADING: proper margins, left-aligned with cards */
+  .pdp-recs{
+    padding:2rem 1rem 3rem;
+  }
+  .pdp-recs-eyebrow{
+    font-size:.58rem;
+    letter-spacing:2.5px;
+    margin-bottom:.3rem;
+  }
+  .pdp-recs-title{
+    font-size:1.25rem;
+    letter-spacing:1.5px;
+    margin-bottom:1.1rem;
+    line-height:1.1;
+  }
+
+  /* Horizontal scroll row */
+  .pdp-recs-grid{
+    display:flex !important;
+    overflow-x:auto;
+    gap:.75rem;
+    scrollbar-width:none;
+    padding-bottom:.75rem;
+    /* Snap for smooth swipe feel */
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+  }
+  .pdp-recs-grid::-webkit-scrollbar{display:none;}
+
+  /* Rec card size — matches the 2-column main grid width */
+  .pdp-recs-grid .prod-card{
+    min-width:160px;
+    max-width:185px;
+    flex-shrink:0;
+    scroll-snap-align:start;
+  }
 }
 </style>
 </head>
