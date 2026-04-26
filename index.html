@@ -1294,25 +1294,52 @@ img{max-width:100%;height:auto;object-fit:contain;}
 ═══════════════════════════════════════════════════════════ */
 .sig-section{
   position:relative;
-  background:linear-gradient(180deg,#070707 0%,#0c0a06 40%,#0a0a0a 100%);
-  border-top:1px solid rgba(200,168,75,.18);
-  border-bottom:1px solid rgba(200,168,75,.1);
+  background:
+    /* Fine diagonal grain texture */
+    repeating-linear-gradient(
+      135deg,
+      transparent 0px,
+      transparent 2px,
+      rgba(200,168,75,.012) 2px,
+      rgba(200,168,75,.012) 4px
+    ),
+    /* Central gold fog */
+    radial-gradient(ellipse 90% 60% at 50% 50%, rgba(200,168,75,.055) 0%, transparent 70%),
+    /* Bottom fade */
+    linear-gradient(to bottom, rgba(200,168,75,.03) 0%, transparent 35%, rgba(200,168,75,.025) 100%),
+    /* Base */
+    #08080a;
+  border-top:1px solid rgba(200,168,75,.25);
+  border-bottom:1px solid rgba(200,168,75,.15);
   padding:5rem 0 4.5rem;
   overflow:hidden;
 }
-/* Ambient glow */
+/* Top gold rule — thin elegant line */
 .sig-section::before{
   content:'';position:absolute;
   top:0;left:50%;transform:translateX(-50%);
-  width:80%;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(200,168,75,.4),transparent);
+  width:70%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(200,168,75,.6),transparent);
+  z-index:1;
 }
+/* Dual corner glows — top-left + bottom-right */
 .sig-section::after{
-  content:'';position:absolute;
-  top:-40%;left:50%;transform:translateX(-50%);
-  width:60%;height:260px;
-  background:radial-gradient(ellipse,rgba(200,168,75,.06) 0%,transparent 70%);
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 55% 45% at 8% 0%, rgba(200,168,75,.09) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 40% at 92% 100%, rgba(200,168,75,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 35% 25% at 50% 50%, rgba(200,168,75,.04) 0%, transparent 65%);
   pointer-events:none;
+}
+/* Decorative horizontal rule below header */
+.sig-rule{
+  max-width:1440px;margin:0 auto;
+  padding:0 2.5rem;
+  margin-bottom:2rem;
+}
+.sig-rule-line{
+  height:1px;
+  background:linear-gradient(90deg,rgba(200,168,75,.35),rgba(200,168,75,.08) 60%,transparent);
 }
 
 /* Header */
@@ -1610,11 +1637,12 @@ img{max-width:100%;height:auto;object-fit:contain;}
         <div class="sig-title">SIGNATURE<br><em>COLLECTION</em></div>
         <div class="sig-sub">Each piece selected for its story, its rarity, and its craftsmanship. These are not just jerseys — they are statements.</div>
       </div>
-      <button class="sig-view-all" onclick="setTab('all');document.getElementById('prodGrid').scrollIntoView({behavior:'smooth'})">
-        View All Jerseys
+      <button class="sig-view-all" onclick="showSignatureInGrid()">
+        View All Signature
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/><polyline points="15 18 21 12 15 6"/></svg>
       </button>
     </div>
+    <div class="sig-rule"><div class="sig-rule-line"></div></div>
     <div class="sig-layout" id="sigLayout"></div>
   </section>
 
@@ -2595,6 +2623,70 @@ function renderSignatureCollection(){
     </div>` : '';
 
   layout.innerHTML = featHtml + gridHtml;
+}
+
+// View All Signature — renders ONLY signature products in the main grid
+// and scrolls to it with the tab label updated
+function showSignatureInGrid(){
+  // Deactivate all tabs (no tab matches "signature")
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+  // Filter and render only signature products in main grid
+  const sigs = PRODUCTS.filter(p => p.signature === true);
+  const grid = document.getElementById('prodGrid');
+  if(!grid) return;
+
+  // Update the section eyebrow & title temporarily
+  const eyebrow = document.querySelector('.tabs-wrap .section-eyebrow');
+  const title   = document.querySelector('.tabs-wrap .section-title');
+  if(eyebrow) eyebrow.textContent = 'Handpicked · Limited Pieces';
+  if(title)   title.textContent   = 'SIGNATURE COLLECTION';
+
+  if(!sigs.length){
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:4rem;color:#555;font-size:.9rem">No signature jerseys yet.</div>`;
+  } else {
+    const CART_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>`;
+    grid.innerHTML = sigs.map(p => {
+      const disc   = Math.round((1 - p.price / p.mrp) * 100);
+      const hasImg = p.images && p.images[0];
+      const bg     = `linear-gradient(135deg,${p.c[0]}22 0%,${p.c[1]}18 100%)`;
+      const {rating, reviews} = _getProductRating(p.id);
+      return `
+        <div class="prod-card" onclick="openPDP('${p.id}')">
+          <div class="card-badge" style="background:var(--gold);color:#000">✦ Signature</div>
+          <div class="card-img" style="background:${hasImg?'#0d0d0d':bg}">
+            <div class="card-img-overlay"></div>
+            ${cardVisual(p)}
+          </div>
+          <div class="card-info">
+            <div class="card-cat">${p.label}</div>
+            <div class="card-name">${p.name}</div>
+            <div class="card-rating">★ ${rating} <span class="card-rating-count">(${reviews}+)</span></div>
+            <div class="card-pricing">
+              <span class="mrp">MRP ₹${p.mrp.toLocaleString('en-IN')}</span>
+              <span class="sale">₹${p.price.toLocaleString('en-IN')}</span>
+              <span class="disc">${disc}% OFF</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-atc-full" onclick="event.stopPropagation();openPDP('${p.id}')">
+              ${CART_SVG} Add to Cart
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // Scroll to the main grid
+  document.getElementById('shop').scrollIntoView({behavior:'smooth'});
+
+  // Re-clicking any tab resets the heading back
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      if(eyebrow) eyebrow.textContent = 'Browse Collections';
+      if(title)   title.textContent   = 'ALL JERSEYS';
+    }, {once:true});
+  });
 }
 
 function renderGrid(cat='all'){
