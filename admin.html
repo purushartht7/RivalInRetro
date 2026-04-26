@@ -575,6 +575,37 @@ tr:last-child td{border-bottom:none;}
   .form-row-3{grid-template-columns:1fr;}
 }
 
+/* ─── SIGNATURE TOGGLE ──────────────────── */
+.sig-toggle{
+  display:flex;align-items:center;gap:.85rem;cursor:pointer;
+  user-select:none;
+}
+.sig-toggle input{position:absolute;opacity:0;width:0;height:0;}
+.sig-toggle-track{
+  width:44px;height:24px;flex-shrink:0;
+  background:#2a2a2a;border:1px solid #3a3a3a;
+  border-radius:12px;position:relative;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+}
+.sig-toggle-thumb{
+  position:absolute;top:2px;left:2px;
+  width:18px;height:18px;border-radius:50%;
+  background:#555;transition:all .25s cubic-bezier(.4,0,.2,1);
+}
+.sig-toggle input:checked ~ .sig-toggle-track{
+  background:#c8a84b;border-color:#c8a84b;
+}
+.sig-toggle input:checked ~ .sig-toggle-track .sig-toggle-thumb{
+  left:22px;background:#000;
+}
+.sig-toggle-label{
+  font-size:.78rem;color:#888;
+  transition:color .2s;
+}
+.sig-toggle input:checked ~ .sig-toggle-label{
+  /* Can't select sibling this way — handled by JS */
+}
+
 /* ═══════════════════════════════════════════
    PASSWORD GATE
 ═══════════════════════════════════════════ */
@@ -879,6 +910,21 @@ tr:last-child td{border-bottom:none;}
         <div class="field">
           <label>Product Description</label>
           <textarea id="f-desc" placeholder="Describe the jersey — fabric, print quality, fit, etc."></textarea>
+        </div>
+
+        <!-- Signature Collection toggle -->
+        <div class="field">
+          <label style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">
+            Signature Collection
+            <span style="font-size:.6rem;letter-spacing:1.5px;text-transform:uppercase;color:#888;font-weight:400">Premium curated picks</span>
+          </label>
+          <label class="sig-toggle" id="sig-toggle-wrap">
+            <input type="checkbox" id="f-signature">
+            <span class="sig-toggle-track">
+              <span class="sig-toggle-thumb"></span>
+            </span>
+            <span class="sig-toggle-label" id="sig-toggle-label">Not in Signature Collection</span>
+          </label>
         </div>
 
         <!-- Section assignment -->
@@ -1621,6 +1667,19 @@ function openModal(id){
   document.getElementById('f-status').value= p?.status||'active';
   document.getElementById('f-desc').value  = p?.desc||'';
 
+  // Signature toggle
+  const sigChk   = document.getElementById('f-signature');
+  const sigLabel = document.getElementById('sig-toggle-label');
+  const sigOn    = p?.signature === true;
+  sigChk.checked = sigOn;
+  if(sigLabel) sigLabel.textContent = sigOn ? '✦ In Signature Collection' : 'Not in Signature Collection';
+  // Label click handler
+  if(sigChk._sigHandler) sigChk.removeEventListener('change', sigChk._sigHandler);
+  sigChk._sigHandler = () => {
+    if(sigLabel) sigLabel.textContent = sigChk.checked ? '✦ In Signature Collection' : 'Not in Signature Collection';
+  };
+  sigChk.addEventListener('change', sigChk._sigHandler);
+
   // Images
   if(p&&p.images&&p.images.length){
     modalImages = p.images.map((src,i)=>({data:src,featured:i===0}));
@@ -1714,6 +1773,7 @@ function saveProduct(){
         qty:parseInt(document.getElementById('f-qty').value)||0,
         status:document.getElementById('f-status').value,
         desc:document.getElementById('f-desc').value.trim(),
+        signature:document.getElementById('f-signature').checked,
         sizes,sections,images,
       };
       await fbSaveProduct(updated);
@@ -1726,6 +1786,7 @@ function saveProduct(){
         qty:parseInt(document.getElementById('f-qty').value)||0,
         status:document.getElementById('f-status').value,
         desc:document.getElementById('f-desc').value.trim(),
+        signature:document.getElementById('f-signature').checked,
         sizes,sections,images,
         priority:prods.length+1,
       };
